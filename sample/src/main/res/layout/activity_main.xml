@@ -12,14 +12,6 @@
         android:orientation="vertical"
         tools:context=".MainActivity">
 
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            app:titleTextColor="@android:color/white"
-            tools:title="111" />
-
         <FrameLayout
             android:id="@+id/content"
             android:layout_width="match_parent"
@@ -31,6 +23,7 @@
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
+        android:minWidth="300dp"
         android:layout_gravity="start"
         android:background="@android:color/white"
         android:orientation="horizontal">

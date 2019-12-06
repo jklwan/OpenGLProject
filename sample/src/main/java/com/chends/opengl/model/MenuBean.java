@@ -20,4 +20,18 @@ public class MenuBean {
         }
         list.add(item);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof MenuBean)) return false;
+
+        MenuBean menuBean = (MenuBean) o;
+        return title.equals(menuBean.title);
+    }
+
+    @Override
+    public int hashCode() {
+        return title.hashCode();
+    }
 }
