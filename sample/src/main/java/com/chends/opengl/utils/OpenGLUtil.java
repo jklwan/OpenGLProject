@@ -1,5 +1,8 @@
 package com.chends.opengl.utils;
 
+import android.app.Activity;
+import android.app.ActivityManager;
+import android.content.Context;
 import android.opengl.GLSurfaceView;
 
 import com.chends.opengl.interfaces.BaseListener;
@@ -36,9 +39,8 @@ public class OpenGLUtil {
             EGLContext context = null;
             Integer version = null;
             try {
-                context = egl.eglCreateContext(
-                        display, eglConfig, EGL10.EGL_NO_CONTEXT, new int[]{EGL_CONTEXT_CLIENT_VERSION, 3,
-                                EGL10.EGL_NONE});
+                context = egl.eglCreateContext(display, eglConfig, EGL10.EGL_NO_CONTEXT,
+                        new int[]{EGL_CONTEXT_CLIENT_VERSION, 3, EGL10.EGL_NONE});
             } catch (Exception ex) {
                 LogUtil.e(ex);
             }
@@ -46,9 +48,8 @@ public class OpenGLUtil {
             if (context == null || context == EGL10.EGL_NO_CONTEXT) {
                 LogUtil.d("un support OpenGL ES 3.0 ");
                 try {
-                    context = egl.eglCreateContext(
-                            display, eglConfig, EGL10.EGL_NO_CONTEXT, new int[]{EGL_CONTEXT_CLIENT_VERSION, 2,
-                                    EGL10.EGL_NONE});
+                    context = egl.eglCreateContext(display, eglConfig, EGL10.EGL_NO_CONTEXT,
+                            new int[]{EGL_CONTEXT_CLIENT_VERSION, 2, EGL10.EGL_NONE});
                 } catch (Exception ex) {
                     LogUtil.e(ex);
                 }
@@ -72,5 +73,25 @@ public class OpenGLUtil {
                 LogUtil.d("destroyContext false");
             }
         }
+    }
+
+    public static boolean checkOpenGL(Activity activity, int version) {
+        ActivityManager am = (ActivityManager) activity.getSystemService(Context.ACTIVITY_SERVICE);
+        if (am != null) {
+            return am.getDeviceConfigurationInfo().reqGlEsVersion >= version;
+        }
+        return false;
+    }
+
+    public static boolean checkOpenGLES20(Activity activity) {
+        return checkOpenGL(activity, 0x20000);
+    }
+
+    public static boolean checkOpenGLES30(Activity activity) {
+        return checkOpenGL(activity, 0x30000);
+    }
+
+    public static boolean checkOpenGLES31(Activity activity) {
+        return checkOpenGL(activity, 0x30001);
     }
 }

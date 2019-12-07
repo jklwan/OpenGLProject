@@ -7,11 +7,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.chends.opengl.model.MenuBean;
 import com.chends.opengl.model.MenuItemBean;
-import com.chends.opengl.view.TriangleView;
-import com.chends.opengl.view.WindowView;
+import com.chends.opengl.utils.OpenGLUtil;
+import com.chends.opengl.view.window.TriangleView;
+import com.chends.opengl.view.window.WindowView;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
@@ -45,14 +47,22 @@ public class MainActivity extends AppCompatActivity {
         content = findViewById(R.id.content);
         menu1 = findViewById(R.id.menu1);
         menu2 = findViewById(R.id.menu2);
+        if (!OpenGLUtil.checkOpenGLES20(this)) {
+            toast("当前设备不支持OpenGL ES 2.0");
+            finish();
+            return;
+        }
         setData();
+    }
+
+    private void toast(CharSequence s) {
+        Toast.makeText(this, s, Toast.LENGTH_SHORT).show();
     }
 
     private void setData() {
         drawerLayout.addDrawerListener(new DrawerLayout.SimpleDrawerListener() {
             @Override
             public void onDrawerSlide(View drawerView, float slideOffset) {
-                super.onDrawerSlide(drawerView, slideOffset);
                 drawerLayout.bringChildToFront(drawerView);
                 drawerLayout.requestLayout();
             }
