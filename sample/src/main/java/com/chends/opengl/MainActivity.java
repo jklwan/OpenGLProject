@@ -12,6 +12,7 @@ import android.widget.Toast;
 import com.chends.opengl.model.MenuBean;
 import com.chends.opengl.model.MenuItemBean;
 import com.chends.opengl.utils.OpenGLUtil;
+import com.chends.opengl.view.window.PointLineView;
 import com.chends.opengl.view.window.TriangleView;
 import com.chends.opengl.view.window.WindowView;
 
@@ -70,6 +71,7 @@ public class MainActivity extends AppCompatActivity {
         List<MenuBean> list = new ArrayList<>();
         MenuBean window = new MenuBean("窗口");
         window.addItem(new MenuItemBean("创建窗口", WindowView.class));
+        window.addItem(new MenuItemBean("点和线", PointLineView.class));
         window.addItem(new MenuItemBean("创建三角", TriangleView.class));
         list.add(window);
         MenuBean texture = new MenuBean("纹理");
