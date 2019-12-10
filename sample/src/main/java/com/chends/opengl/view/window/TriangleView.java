@@ -1,11 +1,10 @@
 package com.chends.opengl.view.window;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
 
-import com.chends.opengl.renderer.BaseRenderer;
+import com.chends.opengl.renderer.window.TriangleRenderer;
 import com.chends.opengl.utils.OpenGLUtil;
 import com.chends.opengl.view.BaseGLView;
 
@@ -24,7 +23,7 @@ public class TriangleView extends BaseGLView {
     @Override
     protected void init() {
         setEGLContextFactory(OpenGLUtil.createFactory());
-        setRenderer(new BaseRenderer(Color.GRAY));
+        setRenderer(new TriangleRenderer());
         setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
     }
 

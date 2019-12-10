@@ -11,7 +11,7 @@ import javax.microedition.khronos.opengles.GL10;
  * @author chends create on 2019/12/6.
  */
 public class BaseRenderer implements GLSurfaceView.Renderer {
-    private int bg = Color.BLACK;
+    protected int bg = Color.BLACK;
 
     public BaseRenderer() {
     }
