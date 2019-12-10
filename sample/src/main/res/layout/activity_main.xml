@@ -16,9 +16,9 @@
         android:id="@+id/menuLayout"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:minWidth="300dp"
         android:layout_gravity="start"
         android:background="@android:color/white"
+        android:minWidth="350dp"
         android:orientation="horizontal">
 
         <androidx.recyclerview.widget.RecyclerView
@@ -26,6 +26,11 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1" />
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="@color/colorPrimary" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/menu2"

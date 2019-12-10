@@ -11,13 +11,31 @@ import javax.microedition.khronos.opengles.GL10;
  * @author chends create on 2019/12/6.
  */
 public class BaseRenderer implements GLSurfaceView.Renderer {
-    protected int bg = Color.BLACK;
+
+    protected String vertexShaderCode;
+    protected String fragmentShaderCode;
+    protected int bg;
+    // 0 到1 代表 0- 256 如 181 用0.70703125f
+    protected float[] color = {0.70703125f, 0.10546875f, 0.84375f, 1.0f};
 
     public BaseRenderer() {
+        this(Color.BLACK);
     }
 
     public BaseRenderer(int bg) {
         this.bg = bg;
+        vertexShaderCode =
+                "attribute vec4 aPosition;" +
+                        "void main() {" +
+                        "  gl_Position = aPosition;" +
+                        "  gl_PointSize = 19.0;" +
+                        "}";
+        fragmentShaderCode =
+                "precision mediump float;" +
+                        "uniform vec4 vColor;" +
+                        "void main() {" +
+                        "  gl_FragColor = vColor;" +
+                        "}";
     }
 
 

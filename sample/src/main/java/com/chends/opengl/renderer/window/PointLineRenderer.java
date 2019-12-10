@@ -13,10 +13,7 @@ import javax.microedition.khronos.opengles.GL10;
  * @author chends create on 2019/12/7.
  */
 public class PointLineRenderer extends BaseRenderer {
-    private final String vertexShaderCode;
-    private final String fragmentShaderCode;
-    private final int COORDS_PER_VERTEX = 3;
-    private final float[] triangleCoords = {
+    private final float[] TriangleCoords = {
             -0.9f, 0.9f, 0.0f,
             -0.9f, 0.8f, 0.0f,
 
@@ -35,24 +32,6 @@ public class PointLineRenderer extends BaseRenderer {
             0.9f, -0.6f, 0.0f,
             0.9f, -0.9f, 0.0f,
     };
-    private float[] color = {0.70703125f, 0.10546875f, 0.84375f, 1.0f}; // 0 到1 代表 0- 256 如 181 用0.70703125f
-
-    private final int vertexStride = COORDS_PER_VERTEX * 4; // 4 bytes per vertex
-
-    public PointLineRenderer() {
-        vertexShaderCode =
-                "attribute vec4 aPosition;" +
-                        "void main() {" +
-                        "  gl_Position = aPosition;" +
-                        "  gl_PointSize = 19.0;" +
-                        "}";
-        fragmentShaderCode =
-                "precision mediump float;" +
-                        "uniform vec4 vColor;" +
-                        "void main() {" +
-                        "  gl_FragColor = vColor;" +
-                        "}";
-    }
 
     @Override
     public void onDrawFrame(GL10 gl) {
@@ -61,7 +40,7 @@ public class PointLineRenderer extends BaseRenderer {
         GLES20.glUseProgram(shaderProgram);
         int positionHandle = GLES20.glGetAttribLocation(shaderProgram, "aPosition");
         GLES20.glEnableVertexAttribArray(positionHandle);
-        FloatBuffer vertexBuffer = OpenGLUtil.createFloatBuffer(triangleCoords);
+        FloatBuffer vertexBuffer = OpenGLUtil.createFloatBuffer(TriangleCoords);
         GLES20.glVertexAttribPointer(positionHandle, 3, GLES20.GL_FLOAT,
                 false, 3 * 4, vertexBuffer);
         int colorHandle = GLES20.glGetUniformLocation(shaderProgram, "vColor");

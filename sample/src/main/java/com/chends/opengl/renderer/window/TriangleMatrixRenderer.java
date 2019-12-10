@@ -12,7 +12,7 @@ import javax.microedition.khronos.opengles.GL10;
 /**
  * @author chends create on 2019/12/7.
  */
-public class TriangleRenderer extends BaseRenderer {
+public class TriangleMatrixRenderer extends BaseRenderer {
     private final float[] TriangleCoords = {
             -0.9f, 0.9f, 0.0f,
             -0.1f, 0.8f, 0.0f,

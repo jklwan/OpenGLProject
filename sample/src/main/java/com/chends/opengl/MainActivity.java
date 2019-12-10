@@ -3,6 +3,7 @@ package com.chends.opengl;
 import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -13,6 +14,8 @@ import com.chends.opengl.model.MenuBean;
 import com.chends.opengl.model.MenuItemBean;
 import com.chends.opengl.utils.OpenGLUtil;
 import com.chends.opengl.view.window.PointLineView;
+import com.chends.opengl.view.window.SquareView;
+import com.chends.opengl.view.window.TriangleColorView;
 import com.chends.opengl.view.window.TriangleView;
 import com.chends.opengl.view.window.WindowView;
 
@@ -23,6 +26,7 @@ import java.util.List;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -53,7 +57,21 @@ public class MainActivity extends AppCompatActivity {
             finish();
             return;
         }
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_menu);
+        }
         setData();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            drawerLayout.openDrawer(GravityCompat.START);
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+
     }
 
     private void toast(CharSequence s) {
@@ -73,6 +91,9 @@ public class MainActivity extends AppCompatActivity {
         window.addItem(new MenuItemBean("创建窗口", WindowView.class));
         window.addItem(new MenuItemBean("点和线", PointLineView.class));
         window.addItem(new MenuItemBean("创建三角", TriangleView.class));
+        window.addItem(new MenuItemBean("矩形", SquareView.class));
+        window.addItem(new MenuItemBean("彩色三角形", TriangleColorView.class));
+
         list.add(window);
         MenuBean texture = new MenuBean("纹理");
         list.add(texture);
