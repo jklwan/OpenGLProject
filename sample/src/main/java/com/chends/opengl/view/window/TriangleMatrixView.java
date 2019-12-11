@@ -20,6 +20,6 @@ public class TriangleMatrixView extends BaseGLView {
     protected void init() {
         setEGLContextFactory(OpenGLUtil.createFactory());
         setRenderer(new TriangleMatrixRenderer());
-        setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+        setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
     }
 }

@@ -16,6 +16,7 @@ import com.chends.opengl.utils.OpenGLUtil;
 import com.chends.opengl.view.window.PointLineView;
 import com.chends.opengl.view.window.SquareView;
 import com.chends.opengl.view.window.TriangleColorView;
+import com.chends.opengl.view.window.TriangleMatrixView;
 import com.chends.opengl.view.window.TriangleView;
 import com.chends.opengl.view.window.WindowView;
 
@@ -93,6 +94,8 @@ public class MainActivity extends AppCompatActivity {
         window.addItem(new MenuItemBean("创建三角", TriangleView.class));
         window.addItem(new MenuItemBean("矩形", SquareView.class));
         window.addItem(new MenuItemBean("彩色三角形", TriangleColorView.class));
+        window.addItem(new MenuItemBean("变换", TriangleMatrixView.class));
+        window.addItem(new MenuItemBean("投影", TriangleMatrixView.class));
 
         list.add(window);
         MenuBean texture = new MenuBean("纹理");
