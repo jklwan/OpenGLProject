@@ -13,6 +13,7 @@ import android.widget.Toast;
 import com.chends.opengl.model.MenuBean;
 import com.chends.opengl.model.MenuItemBean;
 import com.chends.opengl.utils.OpenGLUtil;
+import com.chends.opengl.view.window.CubeView;
 import com.chends.opengl.view.window.PointLineView;
 import com.chends.opengl.view.window.SquareView;
 import com.chends.opengl.view.window.TriangleColorView;
@@ -75,6 +76,15 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    public void onBackPressed() {
+        if (drawerLayout != null && drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return;
+        }
+        super.onBackPressed();
+    }
+
     private void toast(CharSequence s) {
         Toast.makeText(this, s, Toast.LENGTH_SHORT).show();
     }
@@ -95,7 +105,7 @@ public class MainActivity extends AppCompatActivity {
         window.addItem(new MenuItemBean("矩形", SquareView.class));
         window.addItem(new MenuItemBean("彩色三角形", TriangleColorView.class));
         window.addItem(new MenuItemBean("变换", TriangleMatrixView.class));
-        window.addItem(new MenuItemBean("投影", TriangleMatrixView.class));
+        window.addItem(new MenuItemBean("立方体", CubeView.class));
 
         list.add(window);
         MenuBean texture = new MenuBean("纹理");

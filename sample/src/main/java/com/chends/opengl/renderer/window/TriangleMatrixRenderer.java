@@ -1,6 +1,5 @@
 package com.chends.opengl.renderer.window;
 
-import android.graphics.Color;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
 import android.os.SystemClock;
@@ -23,11 +22,7 @@ public class TriangleMatrixRenderer extends BaseRenderer {
     };
 
     public TriangleMatrixRenderer() {
-        this(Color.BLACK);
-    }
-
-    public TriangleMatrixRenderer(int bg) {
-        super(bg);
+        super();
         vertexShaderCode =
                 "uniform mat4 uMVPMatrix;" +
                         "attribute vec4 aPosition;" +

@@ -14,7 +14,7 @@ public class BaseRenderer implements GLSurfaceView.Renderer {
 
     protected String vertexShaderCode;
     protected String fragmentShaderCode;
-    protected int bg;
+    protected int bg = Color.BLACK;
     // 0 到1 代表 0- 256 如 181 用0.70703125f
     protected float[] color = {0.70703125f, 0.10546875f, 0.84375f, 1.0f};
 
