@@ -7,7 +7,6 @@ import com.chends.opengl.renderer.BaseRenderer;
 import com.chends.opengl.utils.OpenGLUtil;
 
 import java.nio.FloatBuffer;
-import java.nio.ShortBuffer;
 
 import javax.microedition.khronos.opengles.GL10;
 
@@ -41,10 +40,15 @@ public class CubeRenderer extends BaseRenderer {
             0, 2, 4, 2, 4, 6, // 左面
             1, 3, 5, 3, 5, 7 // 右面
     };*/
-    private short[] indices = new short[]{
+    /*private short[] indices = new short[]{
             2, 3, 0, 1, 5, 3, 7, 2, 6, 0, 4, 5, 6, 7
+    };*/
+    private short[] indices = new short[]{
+            0, 2, 3, 1, 5, 4, 6, 2
     };
-
+    private short[] indices2 = new short[]{
+            7, 6, 4, 5, 1, 3, 2, 6
+    };
     /**
      * 颜色
      */
@@ -128,9 +132,14 @@ public class CubeRenderer extends BaseRenderer {
 
         // 将视图转换传递给着色器
         GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, vPMatrix, 0);
-        ShortBuffer indexBuffer = OpenGLUtil.createShortBuffer(indices);
-        GLES20.glDrawElements(GLES20.GL_TRIANGLE_STRIP, indices.length,
-                GLES20.GL_UNSIGNED_SHORT, indexBuffer);
+        /*GLES20.glDrawElements(GLES20.GL_TRIANGLES, indices.length,
+                GLES20.GL_UNSIGNED_SHORT, OpenGLUtil.createShortBuffer(indices));*/
+        /*GLES20.glDrawElements(GLES20.GL_TRIANGLE_STRIP, indices.length,
+                GLES20.GL_UNSIGNED_SHORT, OpenGLUtil.createShortBuffer(indices));*/
+        GLES20.glDrawElements(GLES20.GL_TRIANGLE_FAN, indices.length,
+                GLES20.GL_UNSIGNED_SHORT,  OpenGLUtil.createShortBuffer(indices));
+        GLES20.glDrawElements(GLES20.GL_TRIANGLE_FAN, indices2.length,
+                GLES20.GL_UNSIGNED_SHORT,  OpenGLUtil.createShortBuffer(indices2));
         GLES20.glDisableVertexAttribArray(positionHandle);
         angle += 2;
     }
