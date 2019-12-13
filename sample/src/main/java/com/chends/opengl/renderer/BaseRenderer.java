@@ -1,5 +1,6 @@
 package com.chends.opengl.renderer;
 
+import android.content.Context;
 import android.graphics.Color;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
@@ -15,14 +16,24 @@ public class BaseRenderer implements GLSurfaceView.Renderer {
     protected String vertexShaderCode;
     protected String fragmentShaderCode;
     protected int bg = Color.BLACK;
+    protected Context context;
     // 0 到1 代表 0- 256 如 181 用0.70703125f
     protected float[] color = {0.70703125f, 0.10546875f, 0.84375f, 1.0f};
 
     public BaseRenderer() {
-        this(Color.BLACK);
+        this(null, Color.BLACK);
+    }
+
+    public BaseRenderer(Context context) {
+        this(context, Color.BLACK);
     }
 
     public BaseRenderer(int bg) {
+        this(null, bg);
+    }
+
+    public BaseRenderer(Context context, int bg) {
+        this.context = context;
         this.bg = bg;
         vertexShaderCode =
                 "attribute vec4 aPosition;" +
@@ -36,6 +47,7 @@ public class BaseRenderer implements GLSurfaceView.Renderer {
                         "void main() {" +
                         "  gl_FragColor = vColor;" +
                         "}";
+
     }
 
 

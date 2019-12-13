@@ -13,6 +13,7 @@ import android.widget.Toast;
 import com.chends.opengl.model.MenuBean;
 import com.chends.opengl.model.MenuItemBean;
 import com.chends.opengl.utils.OpenGLUtil;
+import com.chends.opengl.view.texture.TextureView;
 import com.chends.opengl.view.window.CubeView;
 import com.chends.opengl.view.window.PointLineView;
 import com.chends.opengl.view.window.SquareView;
@@ -109,6 +110,7 @@ public class MainActivity extends AppCompatActivity {
 
         list.add(window);
         MenuBean texture = new MenuBean("纹理");
+        texture.addItem(new MenuItemBean("创建纹理", TextureView.class));
         list.add(texture);
         menu1.setLayoutManager(new LinearLayoutManager(this));
         menu2.setLayoutManager(new LinearLayoutManager(this));
@@ -166,6 +168,7 @@ public class MainActivity extends AppCompatActivity {
                     if (newP != -1) {
                         notifyItemChanged(newP);
                     }
+                    return true;
                 }
             }
             return false;

@@ -3,8 +3,10 @@ package com.chends.opengl.utils;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
+import android.opengl.GLUtils;
 
 import com.chends.opengl.interfaces.BaseListener;
 
@@ -250,5 +252,60 @@ public class OpenGLUtil {
             aar[i] = data.get(i);
         }
         return createShortBuffer(aar);
+    }
+
+    /**
+     * 加载bitmap纹理
+     * @param bitmap bitmap图片
+     * @return int
+     */
+    public static int createTextureNormal(Bitmap bitmap) {
+        int[] texture = new int[1];
+        if (bitmap != null && !bitmap.isRecycled()) {
+            //生成纹理
+            GLES20.glGenTextures(1, texture, 0);
+            checkGlError("glGenTexture");
+            //生成纹理
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texture[0]);
+            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER,
+                    GLES20.GL_LINEAR);
+            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER,
+                    GLES20.GL_LINEAR);
+            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S,
+                    GLES20.GL_REPEAT);
+            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T,
+                    GLES20.GL_REPEAT);
+            //根据以上指定的参数，生成一个2D纹理
+            GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
+            return texture[0];
+        }
+        return 0;
+    }
+
+    /**
+     * 绑定纹理
+     * @param location 句柄
+     * @param texture  纹理id
+     * @param index    索引
+     */
+    public static void bindTexture(int location, int texture, int index) {
+        bindTexture(location, texture, index, GLES20.GL_TEXTURE_2D);
+    }
+
+    /**
+     * 绑定纹理
+     * @param location    句柄
+     * @param texture     纹理值
+     * @param index       绑定的位置
+     * @param textureType 纹理类型
+     */
+    public static void bindTexture(int location, int texture, int index, int textureType) {
+        // 最多支持绑定32个纹理
+        if (index > 31) {
+            throw new IllegalArgumentException("index must be no more than 31!");
+        }
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0 + index);
+        GLES20.glBindTexture(textureType, texture);
+        GLES20.glUniform1i(location, index);
     }
 }
