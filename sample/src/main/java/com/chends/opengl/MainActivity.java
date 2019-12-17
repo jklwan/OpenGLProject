@@ -14,6 +14,7 @@ import com.chends.opengl.model.MenuBean;
 import com.chends.opengl.model.MenuItemBean;
 import com.chends.opengl.utils.OpenGLUtil;
 import com.chends.opengl.view.texture.TextureColorView;
+import com.chends.opengl.view.texture.TextureOverView;
 import com.chends.opengl.view.texture.TextureView;
 import com.chends.opengl.view.window.CubeView;
 import com.chends.opengl.view.window.PointLineView;
@@ -113,6 +114,8 @@ public class MainActivity extends AppCompatActivity {
         MenuBean texture = new MenuBean("纹理");
         texture.addItem(new MenuItemBean("创建纹理", TextureView.class));
         texture.addItem(new MenuItemBean("纹理颜色", TextureColorView.class));
+        texture.addItem(new MenuItemBean("纹理叠加", TextureOverView.class));
+
         list.add(texture);
         menu1.setLayoutManager(new LinearLayoutManager(this));
         menu2.setLayoutManager(new LinearLayoutManager(this));
