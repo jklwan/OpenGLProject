@@ -51,19 +51,19 @@ public class TextureOverRenderer extends BaseRenderer {
 
     private float[] vertices = {
             // ---- 位置 ----  - 纹理坐标 -
+            -0.5f, 0.5f, 0.0f, 0.0f, 1 - 1.0f,    // 左上
             0.5f, 0.5f, 0.0f, 1.0f, 1 - 1.0f,   // 右上
-            0.5f, -0.5f, 0.0f, 1.0f, 1 - 0.0f,   // 右下
             -0.5f, -0.5f, 0.0f, 0.0f, 1 - 0.0f,   // 左下
-            -0.5f, 0.5f, 0.0f, 0.0f, 1 - 1.0f    // 左上
+            0.5f, -0.5f, 0.0f, 1.0f, 1 - 0.0f   // 右下
     }, texture2Array = {
+            0.0f, 1 - 1.0f,    // 左上
             1.0f, 1 - 1.0f,   // 右上
-            1.0f, 1 - 0.0f,   // 右下
             0.0f, 1 - 0.0f,   // 左下
-            0.0f, 1 - 1.0f    // 左上
+            1.0f, 1 - 0.0f   // 右下
     };
 
     private short[] indices = new short[]{
-            0, 1, 2, 2, 3, 0
+            0, 1, 2, 2, 3, 1
     };
 
     private float imageWH1, imageWH2;
@@ -107,14 +107,12 @@ public class TextureOverRenderer extends BaseRenderer {
 
         // 根据 w，h 和第二张图片的宽高比计算纹理坐标
         if (imageWH1 != imageWH2) {
-            if (imageWH1 > imageWH2){
+            if (imageWH1 > imageWH2) {
                 // 第二张图比较高，左右减小
-                texture2Array[0] = texture2Array[2] = imageWH1 / imageWH2;
-                texture2Array[4] = texture2Array[6] = 1 - texture2Array[0];
+                texture2Array[6] = texture2Array[4] = 1 + imageWH2 / imageWH1;
             } else {
                 // 第二张图比较宽，上下减小
-                texture2Array[1] = texture2Array[7] = imageWH2 / imageWH1;
-                texture2Array[3] = texture2Array[5] = 1 - texture2Array[0];
+                texture2Array[5] = texture2Array[7] = 1 + imageWH1 / imageWH2;
             }
         }
     }
