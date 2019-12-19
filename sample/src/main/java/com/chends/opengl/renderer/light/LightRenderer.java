@@ -49,7 +49,7 @@ public class LightRenderer extends BaseRenderer {
                         "varying vec3 oColor;" +
                         "void main() {" +
                         "  gl_FragColor = vec4(lColor * oColor, 1.0);" +
-                        "}"; // 动态改变颜色
+                        "}";
 
         vertexLightShaderCode =
                 "uniform mat4 uMVPMatrix;" +
@@ -118,9 +118,9 @@ public class LightRenderer extends BaseRenderer {
 
         int mMVPMatrixHandle1 = GLES20.glGetUniformLocation(lightProgram, "uMVPMatrix");
         // 移动光源的位置
-        Matrix.translateM(vPMatrix2, 0, 0.7f, 0.7f, 0f);
+        Matrix.translateM(vPMatrix2, 0, 0.7f, 0.8f, 0f);
         // 缩放光源
-        Matrix.scaleM(vPMatrix2, 0, 0.2f, 0.2f, 0.2f);
+        Matrix.scaleM(vPMatrix2, 0, 0.1f, 0.1f, 0.1f);
         // 计算
         //Matrix.multiplyMM(vPMatrix, 0, tempMatrix, 0, translateMatrix, 0);
         GLES20.glUniformMatrix4fv(mMVPMatrixHandle1, 1, false, vPMatrix2, 0);
