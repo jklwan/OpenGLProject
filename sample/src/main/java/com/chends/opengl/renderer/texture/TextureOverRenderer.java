@@ -108,11 +108,11 @@ public class TextureOverRenderer extends BaseRenderer {
         // 根据 w，h 和第二张图片的宽高比计算纹理坐标
         if (imageWH1 != imageWH2) {
             if (imageWH1 > imageWH2) {
-                // 第二张图比较高，左右减小
-                texture2Array[6] = texture2Array[4] = 1 + imageWH2 / imageWH1;
+                // 第二张图比较高
+                texture2Array[2] = texture2Array[6] = 1 + (imageWH1 - imageWH2);
             } else {
-                // 第二张图比较宽，上下减小
-                texture2Array[5] = texture2Array[7] = 1 + imageWH1 / imageWH2;
+                // 第二张图比较宽
+                texture2Array[5] = texture2Array[7] = 1 + (imageWH2 - imageWH1);
             }
         }
     }

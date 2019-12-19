@@ -13,6 +13,7 @@ import android.widget.Toast;
 import com.chends.opengl.model.MenuBean;
 import com.chends.opengl.model.MenuItemBean;
 import com.chends.opengl.utils.OpenGLUtil;
+import com.chends.opengl.view.light.LightView;
 import com.chends.opengl.view.texture.TextureColorView;
 import com.chends.opengl.view.texture.TextureOverView;
 import com.chends.opengl.view.texture.TextureView;
@@ -109,14 +110,17 @@ public class MainActivity extends AppCompatActivity {
         window.addItem(new MenuItemBean("彩色三角形", TriangleColorView.class));
         window.addItem(new MenuItemBean("变换", TriangleMatrixView.class));
         window.addItem(new MenuItemBean("立方体", CubeView.class));
-
         list.add(window);
+
         MenuBean texture = new MenuBean("纹理");
         texture.addItem(new MenuItemBean("创建纹理", TextureView.class));
         texture.addItem(new MenuItemBean("纹理颜色", TextureColorView.class));
         texture.addItem(new MenuItemBean("纹理叠加", TextureOverView.class));
-
         list.add(texture);
+
+        MenuBean light = new MenuBean("光照");
+        light.addItem(new MenuItemBean("简单光照", LightView.class));
+        list.add(light);
         menu1.setLayoutManager(new LinearLayoutManager(this));
         menu2.setLayoutManager(new LinearLayoutManager(this));
         subAdapter = new SubAdapter();
