@@ -14,6 +14,7 @@ import com.chends.opengl.model.MenuBean;
 import com.chends.opengl.model.MenuItemBean;
 import com.chends.opengl.utils.OpenGLUtil;
 import com.chends.opengl.view.light.LightView;
+import com.chends.opengl.view.light.PhongLightView;
 import com.chends.opengl.view.texture.TextureColorView;
 import com.chends.opengl.view.texture.TextureOverView;
 import com.chends.opengl.view.texture.TextureView;
@@ -120,6 +121,7 @@ public class MainActivity extends AppCompatActivity {
 
         MenuBean light = new MenuBean("光照");
         light.addItem(new MenuItemBean("简单光照", LightView.class));
+        light.addItem(new MenuItemBean("Phong光照", PhongLightView.class));
         list.add(light);
         menu1.setLayoutManager(new LinearLayoutManager(this));
         menu2.setLayoutManager(new LinearLayoutManager(this));

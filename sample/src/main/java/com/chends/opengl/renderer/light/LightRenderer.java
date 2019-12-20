@@ -62,7 +62,7 @@ public class LightRenderer extends BaseRenderer {
                         "varying vec3 lColor;" +
                         "void main() {" +
                         "  gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);" +
-                        "}"; // 动态改变颜色
+                        "}";
 
         Matrix.setIdentityM(vPMatrix, 0);
         Matrix.setIdentityM(projectionMatrix, 0);
