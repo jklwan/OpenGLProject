@@ -77,7 +77,7 @@ public class PhongLightRenderer extends BaseRenderer {
                         " lColor = vec3(1.0, 1.0, 1.0);" +
                         " oColor = vec3(1.0, 0.5, 0.31);" +
                         // 法向量
-                        " Normal =  aNormal;" +
+                        " Normal = vec3(model * vec4(aNormal, 0.0));" +
                         " gl_Position = uMVPMatrix * vec4(aPosition, 1.0);" +
                         "}";
         fragmentShaderCode =
@@ -86,23 +86,22 @@ public class PhongLightRenderer extends BaseRenderer {
                         "varying vec3 oColor;" +
                         "varying vec3 Normal;" +
                         "varying vec3 FragPos;" +
-                        "varying vec3 viewPos;" +
                         "void main() {" +
                         // ambient
                         " float ambientStrength = 0.3;" +
                         " vec3 ambient = ambientStrength * lColor;" +
                         // diffuse
                         " vec3 norm = normalize(Normal);" +
-                        " vec3 lightPos = vec3(1.8, 1.8, 5);" +
+                        " vec3 lightPos = vec3(1.8, 1.8, 5.0);" +
                         " vec3 lightDir = normalize(lightPos - FragPos);" +
                         " float diff = max(dot(norm, lightDir), 0.0);" +
                         " vec3 diffuse = diff * lColor;" +
                         // specular
-                        " vec3 viewPos = vec3(0,0,3);" +
+                        " vec3 viewPos = vec3(1.0, 1.0, 5.0);" +
                         " float specularStrength = 0.5;" +
                         " vec3 viewDir = normalize(viewPos - FragPos);" +
                         " vec3 reflectDir = reflect(-lightDir, norm);" +
-                        " float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);" +
+                        " float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0);" +
                         " vec3 specular = specularStrength * spec * lColor;" +
 
                         " vec3 result = (ambient + diffuse + specular) * oColor;" +
@@ -141,7 +140,7 @@ public class PhongLightRenderer extends BaseRenderer {
 
         // 设置透视投影矩阵，近点是3，远点是7
         Matrix.frustumM(projectionMatrix, 0, -ratio, ratio, -1, 1, 3, 7);
-        Matrix.setLookAtM(viewMatrix, 0, 0f, 0f, 3f,
+        Matrix.setLookAtM(viewMatrix, 0, 1f, 1f, 5f,
                 0f, 0f, 0f,
                 0f, 1.0f, 0.0f);
         // 计算
