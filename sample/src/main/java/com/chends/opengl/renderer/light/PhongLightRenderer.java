@@ -63,8 +63,9 @@ public class PhongLightRenderer extends BaseRenderer {
     public PhongLightRenderer() {
         super();
         vertexShaderCode =
-                "uniform mat4 uMVPMatrix;" +
-                        "uniform mat4 model;" +
+                "uniform mat4 model;" +
+                        "uniform mat4 view;" +
+                        "uniform mat4 projection;" +
                         "attribute vec3 aPosition;" +
                         "attribute vec3 aNormal;" +
                         "varying vec3 aColor;" +
@@ -76,17 +77,17 @@ public class PhongLightRenderer extends BaseRenderer {
                         " vec3 ambient = ambientStrength * lColor;" +
                         // 转换坐标
                         " FragPos = vec3(model * vec4(aPosition, 1.0));" +
-                        " Normal = vec3(model * vec4(aNormal, 0.0));" +
+                        " Normal = aNormal;" +
                         // diffuse
                         " vec3 norm = normalize(Normal);" +
-                        " vec3 lightPos = vec3(1.8, 1.8, 5.0);" +
+                        " vec3 lightPos = vec3(1.2, 1.0, 2.0);" +
                         " vec3 lightDir = normalize(lightPos - FragPos);" +
                         " float diff = max(dot(norm, lightDir), 0.0);" +
                         " vec3 diffuse = diff * lColor;" +
                         " vec3 result = (ambient + diffuse) * oColor;" +
                         " aColor = vec4(result, 1.0);" +
 
-                        " gl_Position = uMVPMatrix * vec4(aPosition, 1.0);" +
+                        " gl_Position = projection * view * vec4(aPosition, 1.0);" +
                         "}";
         fragmentShaderCode =
                 "precision mediump float;" +
@@ -107,18 +108,14 @@ public class PhongLightRenderer extends BaseRenderer {
                         " gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);" +
                         "}";
 
-        Matrix.setIdentityM(vPMatrix, 0);
         Matrix.setIdentityM(projectionMatrix, 0);
         Matrix.setIdentityM(viewMatrix, 0);
-        Matrix.setIdentityM(vPMatrix2, 0);
-        Matrix.setIdentityM(model, 0);
-        /*for (int i = 0; i < 16; i++) {
-            model[i] = 1f;
-        }*/
+        Matrix.setIdentityM(modelMatrix, 0);
+        Matrix.setIdentityM(vPMatrix, 0);
     }
 
-    private final float[] vPMatrix = new float[16], vPMatrix2 = new float[16], projectionMatrix = new float[16],
-            viewMatrix = new float[16], model = new float[16];
+    private final float[] vPMatrix = new float[16], projectionMatrix = new float[16],
+            viewMatrix = new float[16], modelMatrix = new float[16];
 
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
@@ -126,18 +123,17 @@ public class PhongLightRenderer extends BaseRenderer {
         float ratio = (float) width / height;
 
         // 设置透视投影矩阵，近点是3，远点是7
-        Matrix.frustumM(projectionMatrix, 0, -ratio, ratio, -1, 1, 3, 20);
-        Matrix.setLookAtM(viewMatrix, 0, 1f, 1f, 10f,
+        Matrix.frustumM(projectionMatrix, 0, -ratio, ratio, -1, 1, 0.1f, 100);
+        Matrix.setLookAtM(viewMatrix, 0, 0f, 0f, 3f,
                 0f, 0f, 0f,
                 0f, 1.0f, 0.0f);
         // 计算
         Matrix.multiplyMM(vPMatrix, 0, projectionMatrix, 0, viewMatrix, 0);
-        Matrix.multiplyMM(vPMatrix2, 0, projectionMatrix, 0, viewMatrix, 0);
     }
 
     @Override
     public void onDrawFrame(GL10 gl) {
-        super.onDrawFrame(gl);
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
         // ---------- 绘制物品 ---------------
         int shaderProgram = OpenGLUtil.createProgram(vertexShaderCode, fragmentShaderCode);
         GLES20.glUseProgram(shaderProgram);
@@ -154,9 +150,11 @@ public class PhongLightRenderer extends BaseRenderer {
         GLES20.glVertexAttribPointer(normalHandle, 3, GLES20.GL_FLOAT,
                 false, (3 + 3) * 4, vertexBuffer);
 
-        int mMVPMatrixHandle = GLES20.glGetUniformLocation(shaderProgram, "uMVPMatrix");
-        GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, vPMatrix, 0);
+        int projectHandle = GLES20.glGetUniformLocation(shaderProgram, "projection");
+        GLES20.glUniformMatrix4fv(projectHandle, 1, false, projectionMatrix, 0);
         int modelHandle = GLES20.glGetUniformLocation(shaderProgram, "model");
+        GLES20.glUniformMatrix4fv(modelHandle, 1, false, modelMatrix, 0);
+        int viewHandle = GLES20.glGetUniformLocation(shaderProgram, "view");
         GLES20.glUniformMatrix4fv(modelHandle, 1, false, viewMatrix, 0);
 
         // 绘制顶点
@@ -174,12 +172,12 @@ public class PhongLightRenderer extends BaseRenderer {
 
         int mMVPMatrixHandle1 = GLES20.glGetUniformLocation(lightProgram, "uMVPMatrix");
         // 移动光源的位置
-        Matrix.translateM(vPMatrix2, 0, 0.7f, 0.8f, 0f);
+        Matrix.translateM(vPMatrix, 0, 1.2f, 1.0f, 2.0f);
         // 缩放光源
-        Matrix.scaleM(vPMatrix2, 0, 0.1f, 0.1f, 0.1f);
+        Matrix.scaleM(vPMatrix, 0, 0.2f, 0.2f, 0.2f);
         // 计算
         //Matrix.multiplyMM(vPMatrix, 0, tempMatrix, 0, translateMatrix, 0);
-        GLES20.glUniformMatrix4fv(mMVPMatrixHandle1, 1, false, vPMatrix2, 0);
+        GLES20.glUniformMatrix4fv(mMVPMatrixHandle1, 1, false, vPMatrix, 0);
 
         // 绘制顶点
         GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, CubeCoords.length / (3 + 3));
