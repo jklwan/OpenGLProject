@@ -67,45 +67,32 @@ public class PhongLightRenderer extends BaseRenderer {
                         "uniform mat4 model;" +
                         "attribute vec3 aPosition;" +
                         "attribute vec3 aNormal;" +
-                        "varying vec3 lColor;" +
-                        "varying vec3 oColor;" +
-                        "varying vec3 Normal;" +
-                        "varying vec3 FragPos;" +
+                        "varying vec3 aColor;" +
                         "void main() {" +
-                        // 转换坐标
-                        " FragPos = vec3(model * vec4(aPosition, 1.0));" +
-                        " lColor = vec3(1.0, 1.0, 1.0);" +
-                        " oColor = vec3(1.0, 0.5, 0.31);" +
-                        // 法向量
-                        " Normal = vec3(model * vec4(aNormal, 0.0));" +
-                        " gl_Position = uMVPMatrix * vec4(aPosition, 1.0);" +
-                        "}";
-        fragmentShaderCode =
-                "precision mediump float;" +
-                        "varying vec3 lColor;" +
-                        "varying vec3 oColor;" +
-                        "varying vec3 Normal;" +
-                        "varying vec3 FragPos;" +
-                        "void main() {" +
+                        " vec3 lColor = vec3(1.0, 1.0, 1.0);" +
+                        " vec3 oColor = vec3(1.0, 0.5, 0.31);" +
                         // ambient
                         " float ambientStrength = 0.3;" +
                         " vec3 ambient = ambientStrength * lColor;" +
+                        // 转换坐标
+                        " FragPos = vec3(model * vec4(aPosition, 1.0));" +
+                        " Normal = vec3(model * vec4(aNormal, 0.0));" +
                         // diffuse
                         " vec3 norm = normalize(Normal);" +
                         " vec3 lightPos = vec3(1.8, 1.8, 5.0);" +
                         " vec3 lightDir = normalize(lightPos - FragPos);" +
                         " float diff = max(dot(norm, lightDir), 0.0);" +
                         " vec3 diffuse = diff * lColor;" +
-                        // specular
-                        " vec3 viewPos = vec3(1.0, 1.0, 5.0);" +
-                        " float specularStrength = 0.5;" +
-                        " vec3 viewDir = normalize(viewPos - FragPos);" +
-                        " vec3 reflectDir = reflect(-lightDir, norm);" +
-                        " float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0);" +
-                        " vec3 specular = specularStrength * spec * lColor;" +
+                        " vec3 result = (ambient + diffuse) * oColor;" +
+                        " aColor = vec4(result, 1.0);" +
 
-                        " vec3 result = (ambient + diffuse + specular) * oColor;" +
-                        " gl_FragColor = vec4(result, 1.0);" +
+                        " gl_Position = uMVPMatrix * vec4(aPosition, 1.0);" +
+                        "}";
+        fragmentShaderCode =
+                "precision mediump float;" +
+                        "varying vec3 aColor;" +
+                        "void main() {" +
+                        " gl_FragColor = aColor" +
                         "}";
 
         vertexLightShaderCode =
@@ -139,8 +126,8 @@ public class PhongLightRenderer extends BaseRenderer {
         float ratio = (float) width / height;
 
         // 设置透视投影矩阵，近点是3，远点是7
-        Matrix.frustumM(projectionMatrix, 0, -ratio, ratio, -1, 1, 3, 7);
-        Matrix.setLookAtM(viewMatrix, 0, 1f, 1f, 5f,
+        Matrix.frustumM(projectionMatrix, 0, -ratio, ratio, -1, 1, 3, 20);
+        Matrix.setLookAtM(viewMatrix, 0, 1f, 1f, 10f,
                 0f, 0f, 0f,
                 0f, 1.0f, 0.0f);
         // 计算
