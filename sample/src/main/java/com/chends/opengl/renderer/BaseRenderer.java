@@ -62,11 +62,13 @@ public class BaseRenderer implements GLSurfaceView.Renderer {
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         // 设置显示范围
         GLES20.glViewport(0, 0, width, height);
+        //GLES20.glEnable(GLES20.GL_CULL_FACE);
+        GLES20.glEnable(GLES20.GL_DEPTH_TEST);
     }
 
     @Override
     public void onDrawFrame(GL10 gl) {
         // 清屏
-        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
     }
 }

@@ -2,6 +2,7 @@ package com.chends.opengl.renderer.light;
 
 import android.opengl.GLES20;
 import android.opengl.Matrix;
+import android.os.SystemClock;
 
 import com.chends.opengl.renderer.BaseRenderer;
 import com.chends.opengl.utils.OpenGLUtil;
@@ -15,8 +16,11 @@ import javax.microedition.khronos.opengles.GL10;
  */
 public class PhongLightRenderer extends BaseRenderer {
     private String vertexLightShaderCode, fragmentLightShaderCode;
+    private float[] mLightPosInModelSpace = new float[]{0f, 0f, 0f, 1.0f};
+    private final float[] mLightPosInWorldSpace = new float[4], mLightPosInEyeSpace = new float[4];
 
     private float[] CubeCoords = new float[]{
+            // ----顶点-----      ------法向量----
             -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
             0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
             0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
@@ -63,37 +67,35 @@ public class PhongLightRenderer extends BaseRenderer {
     public PhongLightRenderer() {
         super();
         vertexShaderCode =
-                "uniform mat4 model;" +
-                        "uniform mat4 view;" +
-                        "uniform mat4 projection;" +
+                "uniform mat4 uMVMatrix;" +
+                        "uniform mat4 uMVPMatrix;" +
                         "attribute vec3 aPosition;" +
                         "attribute vec3 aNormal;" +
-                        "varying vec3 aColor;" +
+                        "uniform vec3 aLightPos;" +
+                        "varying vec4 aColor;" +
                         "void main() {" +
-                        " vec3 lColor = vec3(1.0, 1.0, 1.0);" +
-                        " vec3 oColor = vec3(1.0, 0.5, 0.31);" +
+                        " vec3 lightColor = vec3(1.0, 1.0, 1.0);" +
+                        " vec3 objectColor = vec3(1.0, 0.5, 0.31);" +
                         // ambient
-                        " float ambientStrength = 0.3;" +
-                        " vec3 ambient = ambientStrength * lColor;" +
+                        " float ambientStrength = 0.1;" +
+                        " vec3 ambient = ambientStrength * lightColor;" +
                         // 转换坐标
-                        " FragPos = vec3(model * vec4(aPosition, 1.0));" +
-                        " Normal = aNormal;" +
+                        " vec3 FragPos = vec3(uMVMatrix * vec4(aPosition, 1.0));" +
                         // diffuse
-                        " vec3 norm = normalize(Normal);" +
-                        " vec3 lightPos = vec3(1.2, 1.0, 2.0);" +
-                        " vec3 lightDir = normalize(lightPos - FragPos);" +
+                        " vec3 norm = vec3(uMVMatrix* vec4(aNormal, 1.0));" +
+                        " vec3 lightDir = normalize(aLightPos - FragPos);" +
                         " float diff = max(dot(norm, lightDir), 0.0);" +
-                        " vec3 diffuse = diff * lColor;" +
-                        " vec3 result = (ambient + diffuse) * oColor;" +
+                        " vec3 diffuse = diff * lightColor;" +
+                        " vec3 result = (ambient + diffuse) * objectColor;" +
                         " aColor = vec4(result, 1.0);" +
 
-                        " gl_Position = projection * view * vec4(aPosition, 1.0);" +
+                        " gl_Position = uMVPMatrix * vec4(aPosition, 1.0);" +
                         "}";
         fragmentShaderCode =
                 "precision mediump float;" +
-                        "varying vec3 aColor;" +
+                        "varying vec4 aColor;" +
                         "void main() {" +
-                        " gl_FragColor = aColor" +
+                        " gl_FragColor = aColor;" +
                         "}";
 
         vertexLightShaderCode =
@@ -101,6 +103,7 @@ public class PhongLightRenderer extends BaseRenderer {
                         "attribute vec3 aPosition;" +
                         "void main() {" +
                         " gl_Position = uMVPMatrix * vec4(aPosition, 1.0);" +
+                        " gl_PointSize = 15.0;" +
                         "}";
         fragmentLightShaderCode =
                 "precision mediump float;" +
@@ -108,14 +111,10 @@ public class PhongLightRenderer extends BaseRenderer {
                         " gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);" +
                         "}";
 
-        Matrix.setIdentityM(projectionMatrix, 0);
-        Matrix.setIdentityM(viewMatrix, 0);
-        Matrix.setIdentityM(modelMatrix, 0);
-        Matrix.setIdentityM(vPMatrix, 0);
     }
 
-    private final float[] vPMatrix = new float[16], projectionMatrix = new float[16],
-            viewMatrix = new float[16], modelMatrix = new float[16];
+    private final float[] mMVPMatrix = new float[16], projectionMatrix = new float[16],
+            viewMatrix = new float[16], modelMatrix = new float[16], mLightModelMatrix = new float[16];
 
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
@@ -123,17 +122,19 @@ public class PhongLightRenderer extends BaseRenderer {
         float ratio = (float) width / height;
 
         // 设置透视投影矩阵，近点是3，远点是7
-        Matrix.frustumM(projectionMatrix, 0, -ratio, ratio, -1, 1, 0.1f, 100);
-        Matrix.setLookAtM(viewMatrix, 0, 0f, 0f, 3f,
+        Matrix.frustumM(projectionMatrix, 0, -ratio, ratio, -1, 1, 3f, 7f);
+        Matrix.setLookAtM(viewMatrix, 0, 1f, 1f, 6f,
                 0f, 0f, 0f,
                 0f, 1.0f, 0.0f);
-        // 计算
-        Matrix.multiplyMM(vPMatrix, 0, projectionMatrix, 0, viewMatrix, 0);
     }
 
     @Override
     public void onDrawFrame(GL10 gl) {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
+
+        long time = SystemClock.uptimeMillis() % 10000L;
+        float angleInDegrees = (360.0f / 10000.0f) * ((int) time);
+
         // ---------- 绘制物品 ---------------
         int shaderProgram = OpenGLUtil.createProgram(vertexShaderCode, fragmentShaderCode);
         GLES20.glUseProgram(shaderProgram);
@@ -150,40 +151,60 @@ public class PhongLightRenderer extends BaseRenderer {
         GLES20.glVertexAttribPointer(normalHandle, 3, GLES20.GL_FLOAT,
                 false, (3 + 3) * 4, vertexBuffer);
 
-        int projectHandle = GLES20.glGetUniformLocation(shaderProgram, "projection");
-        GLES20.glUniformMatrix4fv(projectHandle, 1, false, projectionMatrix, 0);
-        int modelHandle = GLES20.glGetUniformLocation(shaderProgram, "model");
-        GLES20.glUniformMatrix4fv(modelHandle, 1, false, modelMatrix, 0);
-        int viewHandle = GLES20.glGetUniformLocation(shaderProgram, "view");
-        GLES20.glUniformMatrix4fv(modelHandle, 1, false, viewMatrix, 0);
+        Matrix.setIdentityM(mLightModelMatrix, 0);
+        Matrix.translateM(mLightModelMatrix, 0, 0.0f, 0.0f, 1.0f);
+        Matrix.rotateM(mLightModelMatrix, 0, angleInDegrees, 0.0f, 1.0f, 0.0f);
+        //Matrix.translateM(mLightModelMatrix, 0, 0.0f, 0.0f, 1.0f);
 
-        // 绘制顶点
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, CubeCoords.length / (3 + 3));
+        Matrix.multiplyMV(mLightPosInWorldSpace, 0, mLightModelMatrix, 0, mLightPosInModelSpace, 0);
+        Matrix.multiplyMV(mLightPosInEyeSpace, 0, viewMatrix, 0, mLightPosInWorldSpace, 0);
 
-        // ---------- 绘制光源 ---------------
-        int lightProgram = OpenGLUtil.createProgram(vertexLightShaderCode, fragmentLightShaderCode);
-        GLES20.glUseProgram(lightProgram);
-        // 传入顶点坐标
-        int lightPositionHandle = GLES20.glGetAttribLocation(lightProgram, "aPosition");
-        GLES20.glEnableVertexAttribArray(lightPositionHandle);
-        vertexBuffer.position(0);
-        GLES20.glVertexAttribPointer(lightPositionHandle, 3, GLES20.GL_FLOAT,
-                false, (3 + 3) * 4, vertexBuffer);
+        drawLight();
+        if (true) return;
+        Matrix.setIdentityM(modelMatrix, 0);
+        //Matrix.translateM(modelMatrix, 0, 2.0f, 0.0f, -4.0f);
+        Matrix.rotateM(modelMatrix, 0, angleInDegrees, 0.0f, 1.0f, 0.0f);
 
-        int mMVPMatrixHandle1 = GLES20.glGetUniformLocation(lightProgram, "uMVPMatrix");
-        // 移动光源的位置
-        Matrix.translateM(vPMatrix, 0, 1.2f, 1.0f, 2.0f);
-        // 缩放光源
-        Matrix.scaleM(vPMatrix, 0, 0.2f, 0.2f, 0.2f);
-        // 计算
-        //Matrix.multiplyMM(vPMatrix, 0, tempMatrix, 0, translateMatrix, 0);
-        GLES20.glUniformMatrix4fv(mMVPMatrixHandle1, 1, false, vPMatrix, 0);
+        int mMVMatrixHandle = GLES20.glGetUniformLocation(shaderProgram, "uMVMatrix");
+        int mMVPMatrixHandle = GLES20.glGetUniformLocation(shaderProgram, "uMVPMatrix");
+        int mLightPosHandle = GLES20.glGetUniformLocation(shaderProgram, "aLightPos");
+
+        Matrix.multiplyMM(mMVPMatrix, 0, viewMatrix, 0, modelMatrix, 0);
+        GLES20.glUniformMatrix4fv(mMVMatrixHandle, 1, false, mMVPMatrix, 0);
+        Matrix.multiplyMM(mMVPMatrix, 0, projectionMatrix, 0, mMVPMatrix, 0);
+        GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, mMVPMatrix, 0);
+        GLES20.glUniform3f(mLightPosHandle, mLightPosInEyeSpace[0], mLightPosInEyeSpace[1], mLightPosInEyeSpace[2]);
 
         // 绘制顶点
         GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, CubeCoords.length / (3 + 3));
 
         GLES20.glDisableVertexAttribArray(positionHandle);
         GLES20.glDisableVertexAttribArray(normalHandle);
+
+
+    }
+
+    /**
+     * 绘制光源
+     */
+    private void drawLight() {
+        // ---------- 绘制光源 ---------------
+        int lightProgram = OpenGLUtil.createProgram(vertexLightShaderCode, fragmentLightShaderCode);
+        GLES20.glUseProgram(lightProgram);
+        // 传入顶点坐标
+        int lightPositionHandle = GLES20.glGetAttribLocation(lightProgram, "aPosition");
+        GLES20.glEnableVertexAttribArray(lightPositionHandle);
+        GLES20.glVertexAttrib3f(lightPositionHandle, mLightPosInModelSpace[0], mLightPosInModelSpace[1],
+                mLightPosInModelSpace[2]);
+
+        Matrix.multiplyMM(mMVPMatrix, 0, viewMatrix, 0, mLightModelMatrix, 0);
+        Matrix.multiplyMM(mMVPMatrix, 0, projectionMatrix, 0, mMVPMatrix, 0);
+
+        int mMVPMatrixHandle = GLES20.glGetUniformLocation(lightProgram, "uMVPMatrix");
+        GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, mMVPMatrix, 0);
+
+        GLES20.glDrawArrays(GLES20.GL_POINTS, 0, 1);
+
         GLES20.glDisableVertexAttribArray(lightPositionHandle);
     }
 }

@@ -36,19 +36,18 @@ public class LightRenderer extends BaseRenderer {
         vertexShaderCode =
                 "uniform mat4 uMVPMatrix;" +
                         "attribute vec4 aPosition;" +
-                        "varying vec3 lColor;" +
-                        "varying vec3 oColor;" +
+                        "varying vec3 aColor;" +
                         "void main() {" +
-                        "  gl_Position = uMVPMatrix * aPosition;" +
-                        "  lColor = vec3(1.0, 1.0, 1.0);" +
-                        "  oColor = vec3(1.0, 0.5, 0.31);" +
+                        " gl_Position = uMVPMatrix * aPosition;" +
+                        " vec3 lightColor = vec3(1.0, 1.0, 1.0);" +
+                        " vec3 objectColor = vec3(1.0, 0.5, 0.31);" +
+                        " aColor = lightColor * objectColor;" +
                         "}";
         fragmentShaderCode =
                 "precision mediump float;" +
-                        "varying vec3 lColor;" +
-                        "varying vec3 oColor;" +
+                        "varying vec3 aColor;" +
                         "void main() {" +
-                        "  gl_FragColor = vec4(lColor * oColor, 1.0);" +
+                        "  gl_FragColor = vec4(aColor, 1.0);" +
                         "}";
 
         vertexLightShaderCode =
@@ -59,18 +58,14 @@ public class LightRenderer extends BaseRenderer {
                         "}";
         fragmentLightShaderCode =
                 "precision mediump float;" +
-                        "varying vec3 lColor;" +
+                        "varying vec3 lightColor;" +
                         "void main() {" +
                         "  gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);" +
                         "}";
 
-        Matrix.setIdentityM(vPMatrix, 0);
-        Matrix.setIdentityM(projectionMatrix, 0);
-        Matrix.setIdentityM(viewMatrix, 0);
-        Matrix.setIdentityM(vPMatrix2, 0);
     }
 
-    private final float[] vPMatrix = new float[16], vPMatrix2 = new float[16],projectionMatrix = new float[16],
+    private final float[] vPMatrix = new float[16], vPMatrix2 = new float[16], projectionMatrix = new float[16],
             viewMatrix = new float[16];
 
     @Override
@@ -79,7 +74,7 @@ public class LightRenderer extends BaseRenderer {
         float ratio = (float) width / height;
 
         // 设置透视投影矩阵，近点是3，远点是7
-        Matrix.frustumM(projectionMatrix, 0, -ratio, ratio, -1, 1, 3, 7);
+        Matrix.frustumM(projectionMatrix, 0, -ratio, ratio, -1, 1, 3f, 7f);
         Matrix.setLookAtM(viewMatrix, 0, 0.8f, 0.8f, 4f,
                 0f, 0f, 0f,
                 0f, 1.0f, 0.0f);
@@ -114,7 +109,7 @@ public class LightRenderer extends BaseRenderer {
         int lightPositionHandle = GLES20.glGetAttribLocation(lightProgram, "aPosition");
         GLES20.glEnableVertexAttribArray(lightPositionHandle);
         GLES20.glVertexAttribPointer(lightPositionHandle, 3, GLES20.GL_FLOAT,
-                false, 3 * 4,  OpenGLUtil.createFloatBuffer(CubeCoords));
+                false, 3 * 4, OpenGLUtil.createFloatBuffer(CubeCoords));
 
         int mMVPMatrixHandle1 = GLES20.glGetUniformLocation(lightProgram, "uMVPMatrix");
         // 移动光源的位置

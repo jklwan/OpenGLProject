@@ -37,7 +37,6 @@ public class TriangleMatrixRenderer extends BaseRenderer {
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         super.onSurfaceChanged(gl, width, height);
-        Matrix.setIdentityM(projectionMatrix, 0);
 
         float aspectRatio = width > height ?
                 (float) width / (float) height :

@@ -100,7 +100,7 @@ public class CubeRenderer extends BaseRenderer {
 
     @Override
     public void onDrawFrame(GL10 gl) {
-        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
+        super.onDrawFrame(gl);
 
         int shaderProgram = OpenGLUtil.createProgram(vertexShaderCode, fragmentShaderCode);
         GLES20.glUseProgram(shaderProgram);
@@ -122,7 +122,7 @@ public class CubeRenderer extends BaseRenderer {
         // 创建一个旋转矩阵
         Matrix.setRotateM(rotationMatrix, 0, angle, 0, 1, 0);
         // 设置观察点，当eyeZ是3时最大，是7时最小，超过这个范围时不可见
-        Matrix.setLookAtM(viewMatrix, 0, 0, 0, 4f,
+        Matrix.setLookAtM(viewMatrix, 0, 1, 1, 4f,
                 0f, 0f, 0f,
                 0f, 1.0f, 0.0f);
         // 计算
