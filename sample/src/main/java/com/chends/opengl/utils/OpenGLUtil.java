@@ -120,6 +120,10 @@ public class OpenGLUtil {
      * @return program
      */
     public static int createProgram(String vertexSource, String fragmentSource) {
+        return createProgram(vertexSource, fragmentSource, null);
+    }
+
+    public static int createProgram(String vertexSource, String fragmentSource, String[] attributes) {
         int vertexShader = loadShader(GLES20.GL_VERTEX_SHADER, vertexSource);
         if (vertexShader == 0) {
             return 0;
@@ -138,6 +142,13 @@ public class OpenGLUtil {
         checkGlError("glAttachShader");
         GLES20.glAttachShader(program, pixelShader);
         checkGlError("glAttachShader");
+        if (attributes != null) {
+            final int size = attributes.length;
+            for (int i = 0; i < size; i++) {
+                GLES20.glBindAttribLocation(program, i, attributes[i]);
+            }
+        }
+
         GLES20.glLinkProgram(program);
         int[] linkStatus = new int[1];
         GLES20.glGetProgramiv(program, GLES20.GL_LINK_STATUS, linkStatus, 0);

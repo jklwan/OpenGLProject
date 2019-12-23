@@ -96,6 +96,10 @@ public class CubeRenderer extends BaseRenderer {
 
         // 设置透视投影矩阵，近点是3，远点是7
         Matrix.frustumM(projectionMatrix, 0, -ratio, ratio, -1, 1, 3, 7);
+        // 设置观察点，当eyeZ是3时最大，是7时最小，超过这个范围时不可见
+        Matrix.setLookAtM(viewMatrix, 0, 1, 1, 4f,
+                0f, 0f, 0f,
+                0f, 1.0f, 0.0f);
     }
 
     @Override
@@ -121,10 +125,6 @@ public class CubeRenderer extends BaseRenderer {
         int mMVPMatrixHandle = GLES20.glGetUniformLocation(shaderProgram, "uMVPMatrix");
         // 创建一个旋转矩阵
         Matrix.setRotateM(rotationMatrix, 0, angle, 0, 1, 0);
-        // 设置观察点，当eyeZ是3时最大，是7时最小，超过这个范围时不可见
-        Matrix.setLookAtM(viewMatrix, 0, 1, 1, 4f,
-                0f, 0f, 0f,
-                0f, 1.0f, 0.0f);
         // 计算
         Matrix.multiplyMM(tempMatrix, 0, projectionMatrix, 0, viewMatrix, 0);
         // 计算

@@ -30,6 +30,7 @@ public class LightRenderer extends BaseRenderer {
     private short[] indices = new short[]{
             2, 3, 0, 1, 5, 3, 7, 2, 6, 0, 4, 5, 6, 7
     };
+    private float[] lightPos = new float[]{1f, 1f, 1f, 1f};
 
     public LightRenderer(Context context) {
         super(context);
@@ -54,13 +55,13 @@ public class LightRenderer extends BaseRenderer {
                 "uniform mat4 uMVPMatrix;" +
                         "attribute vec4 aPosition;" +
                         "void main() {" +
-                        "  gl_Position = uMVPMatrix * aPosition;" +
+                        " gl_Position = uMVPMatrix * aPosition;" +
+                        " gl_PointSize = 25.0;" +
                         "}";
         fragmentLightShaderCode =
                 "precision mediump float;" +
-                        "varying vec3 lightColor;" +
                         "void main() {" +
-                        "  gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);" +
+                        " gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);" +
                         "}";
 
     }
@@ -75,18 +76,49 @@ public class LightRenderer extends BaseRenderer {
 
         // 设置透视投影矩阵，近点是3，远点是7
         Matrix.frustumM(projectionMatrix, 0, -ratio, ratio, -1, 1, 3f, 7f);
-        Matrix.setLookAtM(viewMatrix, 0, 0.8f, 0.8f, 4f,
+        Matrix.setLookAtM(viewMatrix, 0, 1.5f, 1.5f, 6f,
                 0f, 0f, 0f,
                 0f, 1.0f, 0.0f);
-        // 计算
-        Matrix.multiplyMM(vPMatrix, 0, projectionMatrix, 0, viewMatrix, 0);
-        Matrix.multiplyMM(vPMatrix2, 0, projectionMatrix, 0, viewMatrix, 0);
     }
 
     @Override
     public void onDrawFrame(GL10 gl) {
         super.onDrawFrame(gl);
-        // ---------- 绘制物品 ---------------
+        // 计算
+        Matrix.multiplyMM(vPMatrix, 0, projectionMatrix, 0, viewMatrix, 0);
+        Matrix.multiplyMM(vPMatrix2, 0, projectionMatrix, 0, viewMatrix, 0);
+
+        drawCube();
+
+        drawLight();
+    }
+
+    /**
+     * 绘制光源
+     */
+    private void drawLight() {
+        int lightProgram = OpenGLUtil.createProgram(vertexLightShaderCode, fragmentLightShaderCode);
+        GLES20.glUseProgram(lightProgram);
+        // 传入顶点坐标
+        int lightPositionHandle = GLES20.glGetAttribLocation(lightProgram, "aPosition");
+        GLES20.glEnableVertexAttribArray(lightPositionHandle);
+        GLES20.glVertexAttribPointer(lightPositionHandle, 4, GLES20.GL_FLOAT,
+                false, 4 * 4, OpenGLUtil.createFloatBuffer(lightPos));
+
+        int mLightMVPMatrixHandle = GLES20.glGetUniformLocation(lightProgram, "uMVPMatrix");
+        // 计算
+        //Matrix.multiplyMM(vPMatrix, 0, tempMatrix, 0, translateMatrix, 0);
+        GLES20.glUniformMatrix4fv(mLightMVPMatrixHandle, 1, false, vPMatrix2, 0);
+
+        // 绘制顶点
+        GLES20.glDrawArrays(GLES20.GL_POINTS, 0, 1);
+        GLES20.glDisableVertexAttribArray(lightPositionHandle);
+    }
+
+    /**
+     * 绘制立方体
+     */
+    private void drawCube() {
         int shaderProgram = OpenGLUtil.createProgram(vertexShaderCode, fragmentShaderCode);
         GLES20.glUseProgram(shaderProgram);
         // 传入顶点坐标
@@ -102,29 +134,6 @@ public class LightRenderer extends BaseRenderer {
         GLES20.glDrawElements(GLES20.GL_TRIANGLE_STRIP, indices.length,
                 GLES20.GL_UNSIGNED_SHORT, OpenGLUtil.createShortBuffer(indices));
 
-        // ---------- 绘制光源 ---------------
-        int lightProgram = OpenGLUtil.createProgram(vertexLightShaderCode, fragmentLightShaderCode);
-        GLES20.glUseProgram(lightProgram);
-        // 传入顶点坐标
-        int lightPositionHandle = GLES20.glGetAttribLocation(lightProgram, "aPosition");
-        GLES20.glEnableVertexAttribArray(lightPositionHandle);
-        GLES20.glVertexAttribPointer(lightPositionHandle, 3, GLES20.GL_FLOAT,
-                false, 3 * 4, OpenGLUtil.createFloatBuffer(CubeCoords));
-
-        int mMVPMatrixHandle1 = GLES20.glGetUniformLocation(lightProgram, "uMVPMatrix");
-        // 移动光源的位置
-        Matrix.translateM(vPMatrix2, 0, 0.7f, 0.8f, 0f);
-        // 缩放光源
-        Matrix.scaleM(vPMatrix2, 0, 0.1f, 0.1f, 0.1f);
-        // 计算
-        //Matrix.multiplyMM(vPMatrix, 0, tempMatrix, 0, translateMatrix, 0);
-        GLES20.glUniformMatrix4fv(mMVPMatrixHandle1, 1, false, vPMatrix2, 0);
-
-        // 绘制顶点
-        GLES20.glDrawElements(GLES20.GL_TRIANGLE_STRIP, indices.length,
-                GLES20.GL_UNSIGNED_SHORT, OpenGLUtil.createShortBuffer(indices));
-
         GLES20.glDisableVertexAttribArray(positionHandle);
-        GLES20.glDisableVertexAttribArray(lightPositionHandle);
     }
 }
