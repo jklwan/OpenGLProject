@@ -1,10 +1,11 @@
 package com.chends.opengl.renderer.light;
 
+import android.content.Context;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
 import android.os.SystemClock;
-import android.renderscript.Matrix4f;
 
+import com.chends.opengl.R;
 import com.chends.opengl.renderer.BaseRenderer;
 import com.chends.opengl.utils.OpenGLUtil;
 
@@ -13,9 +14,10 @@ import java.nio.FloatBuffer;
 import javax.microedition.khronos.opengles.GL10;
 
 /**
- * @author chends create on 2019/12/20.
+ * 材质
+ * @author chends create on 2019/12/24.
  */
-public class PhongLightRenderer extends BaseRenderer {
+public class MaterialsRenderer extends BaseRenderer {
     private String vertexLightShaderCode, fragmentLightShaderCode;
     private float[] mLightPosInModelSpace = new float[]{0f, 0.4f, 1f, 1f};
     private final float[] mLightPosInWorldSpace = new float[4], mLightPosInEyeSpace = new float[4];
@@ -72,14 +74,6 @@ public class PhongLightRenderer extends BaseRenderer {
      * 各个面颜色
      */
     private final float[] cubeColorData = new float[]{
-            // 红
-            1.0f, 0.0f, 0.0f,
-            1.0f, 0.0f, 0.0f,
-            1.0f, 0.0f, 0.0f,
-            1.0f, 0.0f, 0.0f,
-            1.0f, 0.0f, 0.0f,
-            1.0f, 0.0f, 0.0f,
-
             // 蓝
             0.0f, 0.0f, 1.0f,
             0.0f, 0.0f, 1.0f,
@@ -87,6 +81,14 @@ public class PhongLightRenderer extends BaseRenderer {
             0.0f, 0.0f, 1.0f,
             0.0f, 0.0f, 1.0f,
             0.0f, 0.0f, 1.0f,
+
+            // 红
+            1.0f, 0.5f, 0.3f,
+            1.0f, 0.5f, 0.3f,
+            1.0f, 0.5f, 0.3f,
+            1.0f, 0.5f, 0.3f,
+            1.0f, 0.5f, 0.3f,
+            1.0f, 0.5f, 0.3f,
 
             // 黄
             1.0f, 1.0f, 0.0f,
@@ -121,67 +123,26 @@ public class PhongLightRenderer extends BaseRenderer {
             1.0f, 0.0f, 1.0f
     };
 
-    public PhongLightRenderer() {
-        super();
-        vertexShaderCode =
-                "uniform mat4 uMVMatrix;" +
-                        "uniform mat4 uMVPMatrix;" +
-                        "uniform mat4 normalMatrix;" +
-                        // 光源坐标
-                        "uniform vec3 aLightPos;" +
-
-                        "attribute vec4 aPosition;" +
-                        // 法向量
-                        "attribute vec3 aNormal;" +
-                        "attribute vec3 objectColor;" +
-                        // 结果
-                        "varying vec4 aColor;" +
-                        "void main() {" +
-                        " vec3 lightColor = vec3(1.0, 1.0, 1.0);" +
-                        // 环境光照
-                        " float ambientStrength = 0.3;" +
-                        " vec3 ambient = ambientStrength * lightColor;" +
-                        // 转换坐标
-                        " vec3 fragPos = vec3(uMVMatrix * aPosition);" +
-
-                        // 漫反射光照
-                        // 归一化法向量
-                        " vec3 norm = normalize(mat3(normalMatrix) * aNormal);" +
-                        // 归一化光源线
-                        " vec3 lightDir = normalize(aLightPos - fragPos);" +
-                        " float diff = max(dot(norm, lightDir), 0.0);" +
-                        " vec3 diffuse = diff * lightColor;" +
-
-                        // 镜面光照
-                        " float specularStrength = 2.5;" +
-                        " vec3 viewDir = normalize(-fragPos);" +
-                        " vec3 reflectDir = reflect(-lightDir, norm);" +
-                        " float spec = pow(max(dot(viewDir, reflectDir), 0.0), 256.0);" +
-                        " vec3 specular = specularStrength * spec * lightColor;" +
-                        // 结果，使用ambient,diffuse,specular相加则为结合的效果
-                        " vec3 result = (ambient + diffuse + specular) * objectColor;" +
-                        " aColor = vec4(result, 1.0);" +
-
-                        " gl_Position = uMVPMatrix * aPosition;" +
-                        "}";
-        fragmentShaderCode =
-                "precision mediump float;" +
-                        "varying vec4 aColor;" +
-                        "void main() {" +
-                        " gl_FragColor = aColor;" +
-                        "}";
+    public MaterialsRenderer(Context context) {
+        super(context);
+        vertexShaderCode = OpenGLUtil.getShaderFromResources(context, R.raw.light_materials_vertex);
+        fragmentShaderCode = OpenGLUtil.getShaderFromResources(context, R.raw.light_materials_fragment);
 
         vertexLightShaderCode =
                 "uniform mat4 uMVPMatrix;" +
                         "attribute vec3 aPosition;" +
+                        "attribute vec3 aColor;" +
+                        "varying vec4 resultColor;" +
                         "void main() {" +
                         " gl_Position = uMVPMatrix * vec4(aPosition, 1.0);" +
                         " gl_PointSize = 25.0;" +
+                        " resultColor = vec4(aColor, 1.0);" +
                         "}";
         fragmentLightShaderCode =
                 "precision mediump float;" +
+                        "varying vec4 resultColor;" +
                         "void main() {" +
-                        " gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);" +
+                        " gl_FragColor = resultColor;" +
                         "}";
 
     }
@@ -189,14 +150,14 @@ public class PhongLightRenderer extends BaseRenderer {
     private final float[] mMVPMatrix = new float[16], projectionMatrix = new float[16],
             viewMatrix = new float[16], modelMatrix = new float[16],
             mLightMVPMatrix = new float[16], mLightModelMatrix = new float[16];
-
+    private float[] color = new float[3];
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         super.onSurfaceChanged(gl, width, height);
         float ratio = (float) width / height;
 
         // 设置透视投影矩阵，近点是3，远点是7
-        Matrix.frustumM(projectionMatrix, 0, -ratio, ratio, -1, 1, 2f, 8f);
+        Matrix.frustumM(projectionMatrix, 0, -ratio, ratio, -1, 1, 3f, 10f);
         Matrix.setLookAtM(viewMatrix, 0, mViewPos[0], mViewPos[1], mViewPos[2],
                 0f, 0f, 0f,
                 0f, 1.0f, 0.0f);
@@ -218,6 +179,10 @@ public class PhongLightRenderer extends BaseRenderer {
         Matrix.setIdentityM(modelMatrix, 0);
         //Matrix.translateM(modelMatrix, 0, 2.0f, 0.0f, -4.0f);
         //Matrix.rotateM(modelMatrix, 0, angleInDegrees, 0.0f, 1.0f, 0.0f);
+        float time = (80.0f / 10000.0f) * (SystemClock.uptimeMillis() % 10000L) + 10;
+        color[0] = (float) Math.sin(time * 1.2f * Math.PI / 180f);
+        color[1] = (float) Math.sin(time * 1.6f * Math.PI / 180f);
+        color[2] = (float) Math.sin(time * 0.5f * Math.PI / 180f);
 
         drawCube();
 
@@ -251,20 +216,30 @@ public class PhongLightRenderer extends BaseRenderer {
 
         int mMVMatrixHandle = GLES20.glGetUniformLocation(shaderProgram, "uMVMatrix");
         int mMVPMatrixHandle = GLES20.glGetUniformLocation(shaderProgram, "uMVPMatrix");
-        int mLightPosHandle = GLES20.glGetUniformLocation(shaderProgram, "aLightPos");
-        int mNormalPosHandle = GLES20.glGetUniformLocation(shaderProgram, "normalMatrix");
-
         Matrix.multiplyMM(mMVPMatrix, 0, viewMatrix, 0, modelMatrix, 0);
         GLES20.glUniformMatrix4fv(mMVMatrixHandle, 1, false, mMVPMatrix, 0);
         Matrix.multiplyMM(mMVPMatrix, 0, projectionMatrix, 0, mMVPMatrix, 0);
         GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, mMVPMatrix, 0);
-        GLES20.glUniform3f(mLightPosHandle, mLightPosInEyeSpace[0], mLightPosInEyeSpace[1], mLightPosInEyeSpace[2]);
 
-        final Matrix4f normalMatrix = new Matrix4f();
-        normalMatrix.loadMultiply(new Matrix4f(viewMatrix), new Matrix4f(modelMatrix));
-        normalMatrix.inverse();
-        normalMatrix.transpose();
-        GLES20.glUniformMatrix4fv(mNormalPosHandle, 1, false, normalMatrix.getArray(), 0);
+        int materialAmbientPosHandle = GLES20.glGetUniformLocation(shaderProgram, "material.ambient");
+        int materialDiffusePosHandle = GLES20.glGetUniformLocation(shaderProgram, "material.diffuse");
+        int materialSpecularPosHandle = GLES20.glGetUniformLocation(shaderProgram, "material.specular");
+        int materialShininessPosHandle = GLES20.glGetUniformLocation(shaderProgram, "material.shininess");
+        GLES20.glUniform3f(materialAmbientPosHandle, 1.0f, 0.5f, 0.31f);
+        GLES20.glUniform3f(materialDiffusePosHandle, 1.0f, 0.5f, 0.31f);
+        GLES20.glUniform3f(materialSpecularPosHandle, 0.5f, 0.5f, 0.5f);
+        GLES20.glUniform1f(materialShininessPosHandle, 128f);
+
+        int lightAmbientPosHandle = GLES20.glGetUniformLocation(shaderProgram, "light.ambient");
+        int lightDiffusePosHandle = GLES20.glGetUniformLocation(shaderProgram, "light.diffuse");
+        int lightSpecularPosHandle = GLES20.glGetUniformLocation(shaderProgram, "light.specular");
+        int lightPosHandle = GLES20.glGetUniformLocation(shaderProgram, "light.position");
+        GLES20.glUniform3f(lightPosHandle, mLightPosInEyeSpace[0], mLightPosInEyeSpace[1], mLightPosInEyeSpace[2]);
+
+
+        GLES20.glUniform3f(lightAmbientPosHandle, 0.2f * color[0], 0.2f * color[1], 0.2f * color[2]);
+        GLES20.glUniform3f(lightDiffusePosHandle, 0.5f * color[0], 0.5f * color[1], 0.5f * color[2]);
+        GLES20.glUniform3f(lightSpecularPosHandle, 1.0f, 1.0f, 1.0f);
 
         // 绘制顶点
         GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, cubeCoords.length / (3 + 3));
@@ -283,9 +258,14 @@ public class PhongLightRenderer extends BaseRenderer {
         GLES20.glUseProgram(lightProgram);
         // 传入顶点坐标
         int lightPositionHandle = GLES20.glGetAttribLocation(lightProgram, "aPosition");
+        int lightColorHandle = GLES20.glGetAttribLocation(lightProgram, "aColor");
         GLES20.glEnableVertexAttribArray(lightPositionHandle);
         GLES20.glVertexAttribPointer(lightPositionHandle, 3, GLES20.GL_FLOAT,
                 false, 3 * 4, OpenGLUtil.createFloatBuffer(mLightPosInModelSpace));
+
+        GLES20.glEnableVertexAttribArray(lightColorHandle);
+        GLES20.glVertexAttribPointer(lightColorHandle, 3, GLES20.GL_FLOAT,
+                false, 3 * 4, OpenGLUtil.createFloatBuffer(color));
 
         Matrix.multiplyMM(mLightMVPMatrix, 0, viewMatrix, 0, mLightModelMatrix, 0);
         Matrix.multiplyMM(mLightMVPMatrix, 0, projectionMatrix, 0, mLightMVPMatrix, 0);

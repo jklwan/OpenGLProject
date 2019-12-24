@@ -3,13 +3,22 @@ package com.chends.opengl.utils;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.GLUtils;
+import android.text.TextUtils;
 
 import com.chends.opengl.interfaces.BaseListener;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
@@ -21,6 +30,8 @@ import javax.microedition.khronos.egl.EGL10;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.egl.EGLContext;
 import javax.microedition.khronos.egl.EGLDisplay;
+
+import androidx.annotation.RawRes;
 
 /**
  * @author chends create on 2019/12/6.
@@ -318,5 +329,82 @@ public class OpenGLUtil {
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0 + index);
         GLES20.glBindTexture(textureType, texture);
         GLES20.glUniform1i(location, index);
+    }
+
+    /**
+     * 从资源文件中读取shader字符串
+     * @param rawResId rawResId
+     * @return string
+     */
+    public static String getShaderFromResources(Context context, @RawRes int rawResId) {
+        InputStream inputStream = null;
+        try {
+            inputStream = context.getResources().openRawResource(rawResId);
+        } catch (Resources.NotFoundException e) {
+            e.printStackTrace();
+        }
+        return getShaderStringFromStream(inputStream);
+    }
+
+    /**
+     * 从文件路径中读取shader字符串
+     * @param filePath filePath
+     * @return string
+     */
+    public static String getShaderFromFile(String filePath) {
+        if (TextUtils.isEmpty(filePath)) {
+            return null;
+        }
+        File file = new File(filePath);
+        if (file.isDirectory()) {
+            return null;
+        }
+        InputStream inputStream = null;
+        try {
+            inputStream = new FileInputStream(file);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        return getShaderStringFromStream(inputStream);
+    }
+
+    /**
+     * 从Assets文件夹中读取shader字符串
+     * @param context context
+     * @param path    shader相对路径
+     * @return string
+     */
+    public static String getShaderFromAssets(Context context, String path) {
+        InputStream inputStream = null;
+        try {
+            inputStream = context.getResources().getAssets().open(path);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return getShaderStringFromStream(inputStream);
+    }
+
+    /**
+     * 从输入流中读取shader字符创
+     * @param stream input stream
+     * @return string
+     */
+    private static String getShaderStringFromStream(InputStream stream) {
+        if (stream == null) {
+            return null;
+        }
+        try {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+            StringBuilder builder = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                builder.append(line).append("\n");
+            }
+            reader.close();
+            return builder.toString();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
