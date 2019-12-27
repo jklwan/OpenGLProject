@@ -74,9 +74,9 @@ public class TextureOverRenderer extends BaseRenderer {
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         super.onSurfaceCreated(gl, config);
         Bitmap bitmap1 = BitmapFactory.decodeResource(context.getResources(),
-                R.drawable.image1);
+                R.drawable.ic_texture_image1);
         Bitmap bitmap2 = BitmapFactory.decodeResource(context.getResources(),
-                R.drawable.image2);
+                R.drawable.ic_texture_image2);
         imageWH1 = (float) bitmap1.getWidth() / (float) bitmap1.getHeight();
         imageWH2 = (float) bitmap2.getWidth() / (float) bitmap2.getHeight();
         texture1 = OpenGLUtil.createTextureNormal(bitmap1);

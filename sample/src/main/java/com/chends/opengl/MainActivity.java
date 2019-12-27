@@ -13,6 +13,7 @@ import android.widget.Toast;
 import com.chends.opengl.model.MenuBean;
 import com.chends.opengl.model.MenuItemBean;
 import com.chends.opengl.utils.OpenGLUtil;
+import com.chends.opengl.view.light.LightMapsView;
 import com.chends.opengl.view.light.LightView;
 import com.chends.opengl.view.light.MaterialsView;
 import com.chends.opengl.view.light.PhongLightView;
@@ -124,6 +125,7 @@ public class MainActivity extends AppCompatActivity {
         light.addItem(new MenuItemBean("简单光照", LightView.class));
         light.addItem(new MenuItemBean("Phong光照", PhongLightView.class));
         light.addItem(new MenuItemBean("材质", MaterialsView.class));
+        light.addItem(new MenuItemBean("光照贴图", LightMapsView.class));
         list.add(light);
         menu1.setLayoutManager(new LinearLayoutManager(this));
         menu2.setLayoutManager(new LinearLayoutManager(this));

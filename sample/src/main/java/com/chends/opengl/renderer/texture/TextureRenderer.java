@@ -56,7 +56,7 @@ public class TextureRenderer extends BaseRenderer {
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         super.onSurfaceCreated(gl, config);
         Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(),
-                R.drawable.image);
+                R.drawable.ic_texture_image);
 
         texture = OpenGLUtil.createTextureNormal(bitmap);
         bitmap.recycle();
