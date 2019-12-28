@@ -4,6 +4,7 @@ import android.content.Context;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
 import android.os.SystemClock;
+import android.renderscript.Matrix4f;
 
 import com.chends.opengl.R;
 import com.chends.opengl.renderer.BaseRenderer;
@@ -150,7 +151,7 @@ public class MaterialsRenderer extends BaseRenderer {
     private final float[] mMVPMatrix = new float[16], projectionMatrix = new float[16],
             viewMatrix = new float[16], modelMatrix = new float[16],
             mLightMVPMatrix = new float[16], mLightModelMatrix = new float[16];
-    private float[] color = new float[3];
+    private float[] color = new float[]{1,1,1};
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         super.onSurfaceChanged(gl, width, height);
@@ -179,10 +180,12 @@ public class MaterialsRenderer extends BaseRenderer {
         Matrix.setIdentityM(modelMatrix, 0);
         //Matrix.translateM(modelMatrix, 0, 2.0f, 0.0f, -4.0f);
         //Matrix.rotateM(modelMatrix, 0, angleInDegrees, 0.0f, 1.0f, 0.0f);
-        float time = (80.0f / 10000.0f) * (SystemClock.uptimeMillis() % 10000L) + 10;
+
+        // 光源变色
+        /*float time = (80.0f / 10000.0f) * (SystemClock.uptimeMillis() % 10000L) + 10;
         color[0] = (float) Math.sin(time * 1.2f * Math.PI / 180f);
         color[1] = (float) Math.sin(time * 1.6f * Math.PI / 180f);
-        color[2] = (float) Math.sin(time * 0.5f * Math.PI / 180f);
+        color[2] = (float) Math.sin(time * 0.5f * Math.PI / 180f);*/
 
         drawCube();
 
@@ -216,10 +219,17 @@ public class MaterialsRenderer extends BaseRenderer {
 
         int mMVMatrixHandle = GLES20.glGetUniformLocation(shaderProgram, "uMVMatrix");
         int mMVPMatrixHandle = GLES20.glGetUniformLocation(shaderProgram, "uMVPMatrix");
+        int mNormalPosHandle = GLES20.glGetUniformLocation(shaderProgram, "normalMatrix");
         Matrix.multiplyMM(mMVPMatrix, 0, viewMatrix, 0, modelMatrix, 0);
         GLES20.glUniformMatrix4fv(mMVMatrixHandle, 1, false, mMVPMatrix, 0);
         Matrix.multiplyMM(mMVPMatrix, 0, projectionMatrix, 0, mMVPMatrix, 0);
         GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, mMVPMatrix, 0);
+
+        final Matrix4f normalMatrix = new Matrix4f();
+        normalMatrix.loadMultiply(new Matrix4f(viewMatrix), new Matrix4f(modelMatrix));
+        normalMatrix.inverse();
+        normalMatrix.transpose();
+        GLES20.glUniformMatrix4fv(mNormalPosHandle, 1, false, normalMatrix.getArray(), 0);
 
         int materialAmbientPosHandle = GLES20.glGetUniformLocation(shaderProgram, "material.ambient");
         int materialDiffusePosHandle = GLES20.glGetUniformLocation(shaderProgram, "material.diffuse");

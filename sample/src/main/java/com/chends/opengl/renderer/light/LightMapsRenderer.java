@@ -25,7 +25,7 @@ public class LightMapsRenderer extends BaseRenderer {
     private float[] mLightPosInModelSpace = new float[]{0f, 0.4f, 1f, 1f};
     private final float[] mLightPosInWorldSpace = new float[4], mLightPosInEyeSpace = new float[4];
 
-    private float[] mViewPos = new float[]{1.5f, 1f, 4f, 1f};
+    private float[] mViewPos = new float[]{-1.5f, -1f, 4f, 1f};
 
     private float[] cubeCoords = new float[]{
             // 顶点               // 法向量          // 纹理坐标
@@ -94,16 +94,24 @@ public class LightMapsRenderer extends BaseRenderer {
     private final float[] mMVPMatrix = new float[16], projectionMatrix = new float[16],
             viewMatrix = new float[16], modelMatrix = new float[16],
             mLightMVPMatrix = new float[16], mLightModelMatrix = new float[16];
-    private int texture;
+    private int diffuse, specular, emission;
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         super.onSurfaceCreated(gl, config);
         Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(),
                 R.drawable.ic_light_maps_image1);
+        Bitmap bitmap2 = BitmapFactory.decodeResource(context.getResources(),
+                R.drawable.ic_light_maps_image2);
+        Bitmap bitmap3 = BitmapFactory.decodeResource(context.getResources(),
+                R.drawable.ic_light_maps_image3);
 
-        texture = OpenGLUtil.createTextureNormal(bitmap);
+        diffuse = OpenGLUtil.createTextureNormal(bitmap);
+        specular = OpenGLUtil.createTextureNormal(bitmap2);
+        emission = OpenGLUtil.createTextureNormal(bitmap3);
         bitmap.recycle();
+        bitmap2.recycle();
+        bitmap3.recycle();
     }
 
     @Override
@@ -134,10 +142,6 @@ public class LightMapsRenderer extends BaseRenderer {
         Matrix.setIdentityM(modelMatrix, 0);
         //Matrix.translateM(modelMatrix, 0, 2.0f, 0.0f, -4.0f);
         //Matrix.rotateM(modelMatrix, 0, angleInDegrees, 0.0f, 1.0f, 0.0f);
-        /*float time = (80.0f / 10000.0f) * (SystemClock.uptimeMillis() % 10000L) + 10;
-        color[0] = (float) Math.sin(time * 1.2f * Math.PI / 180f);
-        color[1] = (float) Math.sin(time * 1.6f * Math.PI / 180f);
-        color[2] = (float) Math.sin(time * 0.5f * Math.PI / 180f);*/
 
         drawCube();
 
@@ -149,7 +153,7 @@ public class LightMapsRenderer extends BaseRenderer {
      */
     private void drawCube() {
         int shaderProgram = OpenGLUtil.createProgram(vertexShaderCode, fragmentShaderCode, new String[]{
-                "aPosition", "aNormal", "objectColor"});
+                "aPosition", "aNormal", "aTextCoords"});
         GLES20.glUseProgram(shaderProgram);
         // 传入顶点坐标
         int positionHandle = GLES20.glGetAttribLocation(shaderProgram, "aPosition");
@@ -178,11 +182,13 @@ public class LightMapsRenderer extends BaseRenderer {
         GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, mMVPMatrix, 0);
 
         int materialDiffusePosHandle = GLES20.glGetUniformLocation(shaderProgram, "material.diffuse");
-        //int materialSpecularPosHandle = GLES20.glGetUniformLocation(shaderProgram, "material.specular");
-        //int materialShininessPosHandle = GLES20.glGetUniformLocation(shaderProgram, "material.shininess");
-        OpenGLUtil.bindTexture(materialDiffusePosHandle, texture, 0);
-        //GLES20.glUniform3f(materialSpecularPosHandle, 0.5f, 0.5f, 0.5f);
-        //GLES20.glUniform1f(materialShininessPosHandle, 128f);
+        int materialSpecularPosHandle = GLES20.glGetUniformLocation(shaderProgram, "material.specular");
+        int materialEmissionPosHandle = GLES20.glGetUniformLocation(shaderProgram, "material.emission");
+        int materialShininessPosHandle = GLES20.glGetUniformLocation(shaderProgram, "material.shininess");
+        OpenGLUtil.bindTexture(materialDiffusePosHandle, diffuse, 0);
+        OpenGLUtil.bindTexture(materialSpecularPosHandle, specular, 1);
+        OpenGLUtil.bindTexture(materialEmissionPosHandle, emission, 2);
+        GLES20.glUniform1f(materialShininessPosHandle, 32f);
 
         int lightAmbientPosHandle = GLES20.glGetUniformLocation(shaderProgram, "light.ambient");
         int lightDiffusePosHandle = GLES20.glGetUniformLocation(shaderProgram, "light.diffuse");

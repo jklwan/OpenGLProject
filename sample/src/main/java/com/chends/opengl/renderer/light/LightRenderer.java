@@ -37,18 +37,15 @@ public class LightRenderer extends BaseRenderer {
         vertexShaderCode =
                 "uniform mat4 uMVPMatrix;" +
                         "attribute vec4 aPosition;" +
-                        "varying vec3 aColor;" +
                         "void main() {" +
                         " gl_Position = uMVPMatrix * aPosition;" +
-                        " vec3 lightColor = vec3(1.0, 1.0, 1.0);" +
-                        " vec3 objectColor = vec3(1.0, 0.5, 0.31);" +
-                        " aColor = lightColor * objectColor;" +
                         "}";
         fragmentShaderCode =
                 "precision mediump float;" +
-                        "varying vec3 aColor;" +
                         "void main() {" +
-                        "  gl_FragColor = vec4(aColor, 1.0);" +
+                        " vec3 lightColor = vec3(1.0, 1.0, 1.0);" +
+                        " vec3 objectColor = vec3(1.0, 0.5, 0.31);" +
+                        "  gl_FragColor = vec4(lightColor * objectColor, 1.0);" +
                         "}";
 
         vertexLightShaderCode =

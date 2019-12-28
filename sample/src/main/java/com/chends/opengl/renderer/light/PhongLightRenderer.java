@@ -1,10 +1,12 @@
 package com.chends.opengl.renderer.light;
 
+import android.content.Context;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
 import android.os.SystemClock;
 import android.renderscript.Matrix4f;
 
+import com.chends.opengl.R;
 import com.chends.opengl.renderer.BaseRenderer;
 import com.chends.opengl.utils.OpenGLUtil;
 
@@ -121,55 +123,10 @@ public class PhongLightRenderer extends BaseRenderer {
             1.0f, 0.0f, 1.0f
     };
 
-    public PhongLightRenderer() {
-        super();
-        vertexShaderCode =
-                "uniform mat4 uMVMatrix;" +
-                        "uniform mat4 uMVPMatrix;" +
-                        "uniform mat4 normalMatrix;" +
-                        // 光源坐标
-                        "uniform vec3 aLightPos;" +
-
-                        "attribute vec4 aPosition;" +
-                        // 法向量
-                        "attribute vec3 aNormal;" +
-                        "attribute vec3 objectColor;" +
-                        // 结果
-                        "varying vec4 aColor;" +
-                        "void main() {" +
-                        " vec3 lightColor = vec3(1.0, 1.0, 1.0);" +
-                        // 环境光照
-                        " float ambientStrength = 0.3;" +
-                        " vec3 ambient = ambientStrength * lightColor;" +
-                        // 转换坐标
-                        " vec3 fragPos = vec3(uMVMatrix * aPosition);" +
-
-                        // 漫反射光照
-                        // 归一化法向量
-                        " vec3 norm = normalize(mat3(normalMatrix) * aNormal);" +
-                        // 归一化光源线
-                        " vec3 lightDir = normalize(aLightPos - fragPos);" +
-                        " float diff = max(dot(norm, lightDir), 0.0);" +
-                        " vec3 diffuse = diff * lightColor;" +
-
-                        // 镜面光照
-                        " float specularStrength = 2.5;" +
-                        " vec3 viewDir = normalize(-fragPos);" +
-                        " vec3 reflectDir = reflect(-lightDir, norm);" +
-                        " float spec = pow(max(dot(viewDir, reflectDir), 0.0), 256.0);" +
-                        " vec3 specular = specularStrength * spec * lightColor;" +
-                        // 结果，使用ambient,diffuse,specular相加则为结合的效果
-                        " vec3 result = (ambient + diffuse + specular) * objectColor;" +
-                        " aColor = vec4(result, 1.0);" +
-
-                        " gl_Position = uMVPMatrix * aPosition;" +
-                        "}";
-        fragmentShaderCode =
-                "precision mediump float;" +
-                        "varying vec4 aColor;" +
-                        "void main() {" +
-                        " gl_FragColor = aColor;" +
-                        "}";
+    public PhongLightRenderer(Context context) {
+        super(context);
+        vertexShaderCode = OpenGLUtil.getShaderFromResources(context, R.raw.light_phong_vertex);
+        fragmentShaderCode = OpenGLUtil.getShaderFromResources(context, R.raw.light_phong_fragment);
 
         vertexLightShaderCode =
                 "uniform mat4 uMVPMatrix;" +

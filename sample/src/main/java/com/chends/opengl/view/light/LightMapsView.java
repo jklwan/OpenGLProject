@@ -7,7 +7,7 @@ import com.chends.opengl.utils.OpenGLUtil;
 import com.chends.opengl.view.BaseGLView;
 
 /**
- * 光照贴条
+ * 光照贴图
  * @author chends create on 2019/12/27.
  */
 public class LightMapsView extends BaseGLView {
