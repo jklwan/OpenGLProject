@@ -23,7 +23,7 @@ public class MaterialsRenderer extends BaseRenderer {
     private float[] mLightPosInModelSpace = new float[]{0f, 0.4f, 1f, 1f};
     private final float[] mLightPosInWorldSpace = new float[4], mLightPosInEyeSpace = new float[4];
 
-    private float[] mViewPos = new float[]{1.5f, 1f, 4f, 1f};
+    private float[] mViewPos = new float[]{1.5f, -1f, 4f, 1f};
 
     private float[] cubeCoords = new float[]{
             // ----顶点-----      ------法向量----

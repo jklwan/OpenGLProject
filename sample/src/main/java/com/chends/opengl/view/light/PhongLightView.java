@@ -1,7 +1,6 @@
 package com.chends.opengl.view.light;
 
 import android.content.Context;
-import android.opengl.GLSurfaceView;
 
 import com.chends.opengl.renderer.light.PhongLightRenderer;
 import com.chends.opengl.utils.OpenGLUtil;
@@ -23,6 +22,6 @@ public class PhongLightView extends BaseGLView {
         // 设置Renderer
         setRenderer(new PhongLightRenderer(getContext()));
         // 设置渲染模式（默认RENDERMODE_CONTINUOUSLY）
-        setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+        //setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
     }
 }
