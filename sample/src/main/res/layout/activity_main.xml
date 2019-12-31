@@ -18,7 +18,6 @@
         android:layout_height="match_parent"
         android:layout_gravity="start"
         android:background="@android:color/white"
-        android:minWidth="350dp"
         android:orientation="horizontal">
 
         <androidx.recyclerview.widget.RecyclerView

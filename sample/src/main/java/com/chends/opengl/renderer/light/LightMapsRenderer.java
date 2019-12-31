@@ -26,7 +26,7 @@ public class LightMapsRenderer extends BaseRenderer {
     private float[] mLightPosInModelSpace = new float[]{0f, 0.4f, 1f, 1f};
     private final float[] mLightPosInWorldSpace = new float[4], mLightPosInEyeSpace = new float[4];
 
-    private float[] mViewPos = new float[]{1.5f, -1f, 4f, 1f};
+    private float[] mViewPos = new float[]{1.5f, -1f, 5f, 1f};
 
     private float[] cubeCoords = new float[]{
             // 顶点               // 法向量          // 纹理坐标
@@ -195,7 +195,7 @@ public class LightMapsRenderer extends BaseRenderer {
         OpenGLUtil.bindTexture(materialDiffusePosHandle, diffuse, 0);
         OpenGLUtil.bindTexture(materialSpecularPosHandle, specular, 1);
         OpenGLUtil.bindTexture(materialEmissionPosHandle, emission, 2);
-        GLES20.glUniform1f(materialShininessPosHandle, 128f);
+        GLES20.glUniform1f(materialShininessPosHandle, 256.0f);
 
         int lightAmbientPosHandle = GLES20.glGetUniformLocation(shaderProgram, "light.ambient");
         int lightDiffusePosHandle = GLES20.glGetUniformLocation(shaderProgram, "light.diffuse");
@@ -205,7 +205,7 @@ public class LightMapsRenderer extends BaseRenderer {
 
         GLES20.glUniform3f(lightAmbientPosHandle, 0.2f, 0.2f, 0.2f);
         GLES20.glUniform3f(lightDiffusePosHandle, 0.5f, 0.5f, 0.5f);
-        GLES20.glUniform3f(lightSpecularPosHandle, 1.0f, 1.0f, 1.0f);
+        GLES20.glUniform3f(lightSpecularPosHandle, .0f, .0f, .0f);
 
         // 绘制顶点
         GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, cubeCoords.length / (3 + 3 + 2));

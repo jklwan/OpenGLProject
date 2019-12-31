@@ -33,11 +33,13 @@ void main() {
     vec3 viewDir = normalize(-fragPos);
     vec3 reflectDir = reflect(-lightDir, norm);
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
-    spec = 0.1;
-    vec3 specular = texture2D(material.specular, TextCoord).rgb * spec * light.specular;
-
+    if (spec > 0.1){
+        spec = 0.1;
+    }
+    vec3 specular = (spec * light.specular) * texture2D(material.diffuse, TextCoord).rgb;
     // emission
     vec3 emission = texture2D(material.emission, TextCoord).rgb;
+
     // 结果
     vec3 result = ambient + diffuse + specular + emission;
 

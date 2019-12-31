@@ -13,10 +13,15 @@ struct Material {
 uniform Material material;
 // 定义光源结构体
 struct Light {
-    vec3 direction;
+    vec3 position;
+
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
+
+    float constant;
+    float linear;
+    float quadratic;
 };
 uniform Light light;
 void main() {
@@ -24,7 +29,7 @@ void main() {
     vec3 ambient = light.ambient* texture2D(material.diffuse, TextCoord).rgb;
     // 漫反射光照
     // 归一化光源线
-    vec3 lightDir = normalize(-(aLightMatrix *light.direction));
+    vec3 lightDir = normalize(light.position - fragPos);
     float diff = max(dot(norm, lightDir), 0.0);
     vec3 diffuse = diff * light.diffuse * texture2D(material.diffuse, TextCoord).rgb;
 
@@ -32,11 +37,13 @@ void main() {
     vec3 viewDir = normalize(-fragPos);
     vec3 reflectDir = reflect(-lightDir, norm);
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
-    if (spec > 0.1){
-        spec = 0.1;
-    }
     vec3 specular = spec * light.specular * texture2D(material.specular, TextCoord).rgb;
-    specular = spec * light.specular;
+
+    float distance = length(light.position - FragPos);
+    float attenuation = 1.0 / (light.constant + light.linear * distance +light.quadratic * (distance * distance));
+    ambient *= attenuation;
+    diffuse *= attenuation;
+    specular *= attenuation;
     // 结果
     vec3 result = ambient + diffuse + specular;
 

@@ -12,6 +12,7 @@ import android.widget.Toast;
 
 import com.chends.opengl.model.MenuBean;
 import com.chends.opengl.model.MenuItemBean;
+import com.chends.opengl.utils.DisplayUtil;
 import com.chends.opengl.utils.OpenGLUtil;
 import com.chends.opengl.view.light.LightCastersDirectionalView;
 import com.chends.opengl.view.light.LightMapsView;
@@ -58,6 +59,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         drawerLayout = findViewById(R.id.drawer_layout);
+        View menu = findViewById(R.id.menuLayout);
+        ViewGroup.LayoutParams lp = menu.getLayoutParams();
+        lp.width = Math.min(DisplayUtil.dp2px(350), DisplayUtil.screenWidth() * 3 / 4);
+        menu.setLayoutParams(lp);
         actionBar = getSupportActionBar();
         content = findViewById(R.id.content);
         menu1 = findViewById(R.id.menu1);

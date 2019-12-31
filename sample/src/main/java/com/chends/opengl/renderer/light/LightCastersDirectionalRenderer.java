@@ -22,7 +22,7 @@ import javax.microedition.khronos.opengles.GL10;
  * @author chends create on 2019/12/28.
  */
 public class LightCastersDirectionalRenderer extends BaseRenderer {
-    private float[] mViewPos = new float[]{0, 0f, 4f, 1f};
+    private float[] mViewPos = new float[]{0, 0f, 5f, 1f};
     private float[] lightDirection = new float[]{-10f, -10f, -10f};
 
     private float[] cubeCoords = new float[]{
@@ -173,7 +173,7 @@ public class LightCastersDirectionalRenderer extends BaseRenderer {
         int materialShininessPosHandle = GLES20.glGetUniformLocation(shaderProgram, "material.shininess");
         OpenGLUtil.bindTexture(materialDiffusePosHandle, diffuse, 0);
         OpenGLUtil.bindTexture(materialSpecularPosHandle, specular, 1);
-        GLES20.glUniform1f(materialShininessPosHandle, 128f);
+        GLES20.glUniform1f(materialShininessPosHandle, 256.0f);
 
         int lightDirectionPosHandle = GLES20.glGetUniformLocation(shaderProgram, "light.direction");
         int lightAmbientPosHandle = GLES20.glGetUniformLocation(shaderProgram, "light.ambient");
