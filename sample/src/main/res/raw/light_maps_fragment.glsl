@@ -27,13 +27,14 @@ void main() {
     // 归一化光源线
     vec3 lightDir = normalize(light.position - fragPos);
     float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = diff * light.diffuse * texture2D(material.diffuse, TextCoord).rgb;
+    vec3 diffuse = light.diffuse * diff * texture2D(material.diffuse, TextCoord).rgb;
 
     // 镜面光照
     vec3 viewDir = normalize(-fragPos);
     vec3 reflectDir = reflect(-lightDir, norm);
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
-    vec3 specular = spec * light.specular * texture2D(material.specular, TextCoord).rgb;
+    spec = 0.1;
+    vec3 specular = texture2D(material.specular, TextCoord).rgb * spec * light.specular;
 
     // emission
     vec3 emission = texture2D(material.emission, TextCoord).rgb;

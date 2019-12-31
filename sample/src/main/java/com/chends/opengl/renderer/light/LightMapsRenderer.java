@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
 import android.os.SystemClock;
+import android.renderscript.Matrix4f;
 
 import com.chends.opengl.R;
 import com.chends.opengl.renderer.BaseRenderer;
@@ -175,19 +176,26 @@ public class LightMapsRenderer extends BaseRenderer {
 
         int mMVMatrixHandle = GLES20.glGetUniformLocation(shaderProgram, "uMVMatrix");
         int mMVPMatrixHandle = GLES20.glGetUniformLocation(shaderProgram, "uMVPMatrix");
+        int mNormalPosHandle = GLES20.glGetUniformLocation(shaderProgram, "normalMatrix");
         Matrix.multiplyMM(mMVPMatrix, 0, viewMatrix, 0, modelMatrix, 0);
         GLES20.glUniformMatrix4fv(mMVMatrixHandle, 1, false, mMVPMatrix, 0);
         Matrix.multiplyMM(mMVPMatrix, 0, projectionMatrix, 0, mMVPMatrix, 0);
         GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, mMVPMatrix, 0);
 
+        final Matrix4f normalMatrix = new Matrix4f();
+        normalMatrix.loadMultiply(new Matrix4f(viewMatrix), new Matrix4f(modelMatrix));
+        normalMatrix.inverse();
+        normalMatrix.transpose();
+        GLES20.glUniformMatrix4fv(mNormalPosHandle, 1, false, normalMatrix.getArray(), 0);
+
         int materialDiffusePosHandle = GLES20.glGetUniformLocation(shaderProgram, "material.diffuse");
         int materialSpecularPosHandle = GLES20.glGetUniformLocation(shaderProgram, "material.specular");
-        int materialEmissionPosHandle = GLES20.glGetUniformLocation(shaderProgram, "material.emission");
         int materialShininessPosHandle = GLES20.glGetUniformLocation(shaderProgram, "material.shininess");
+        int materialEmissionPosHandle = GLES20.glGetUniformLocation(shaderProgram, "material.emission");
         OpenGLUtil.bindTexture(materialDiffusePosHandle, diffuse, 0);
         OpenGLUtil.bindTexture(materialSpecularPosHandle, specular, 1);
         OpenGLUtil.bindTexture(materialEmissionPosHandle, emission, 2);
-        GLES20.glUniform1f(materialShininessPosHandle, 32f);
+        GLES20.glUniform1f(materialShininessPosHandle, 128f);
 
         int lightAmbientPosHandle = GLES20.glGetUniformLocation(shaderProgram, "light.ambient");
         int lightDiffusePosHandle = GLES20.glGetUniformLocation(shaderProgram, "light.diffuse");

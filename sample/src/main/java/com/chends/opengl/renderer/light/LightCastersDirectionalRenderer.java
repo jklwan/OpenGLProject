@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
 import android.os.SystemClock;
+import android.renderscript.Matrix4f;
 
 import com.chends.opengl.R;
 import com.chends.opengl.renderer.BaseRenderer;
@@ -22,6 +23,7 @@ import javax.microedition.khronos.opengles.GL10;
  */
 public class LightCastersDirectionalRenderer extends BaseRenderer {
     private float[] mViewPos = new float[]{0, 0f, 4f, 1f};
+    private float[] lightDirection = new float[]{-10f, -10f, -10f};
 
     private float[] cubeCoords = new float[]{
             // 顶点               // 法向量          // 纹理坐标
@@ -82,7 +84,7 @@ public class LightCastersDirectionalRenderer extends BaseRenderer {
 
     public LightCastersDirectionalRenderer(Context context) {
         super(context);
-        this.bg = Color.argb(26,26,26,26);
+        this.bg = Color.argb(26, 26, 26, 26);
         vertexShaderCode = OpenGLUtil.getShaderFromResources(context, R.raw.light_casters_directional_vertex);
         fragmentShaderCode = OpenGLUtil.getShaderFromResources(context, R.raw.light_casters_directional_fragment);
     }
@@ -152,20 +154,32 @@ public class LightCastersDirectionalRenderer extends BaseRenderer {
 
         int mMVMatrixHandle = GLES20.glGetUniformLocation(shaderProgram, "uMVMatrix");
         int mMVPMatrixHandle = GLES20.glGetUniformLocation(shaderProgram, "uMVPMatrix");
+        int mNormalMatrixHandle = GLES20.glGetUniformLocation(shaderProgram, "normalMatrix");
+        int mLightMatrixHandle = GLES20.glGetUniformLocation(shaderProgram, "lightMatrix");
+
+        final Matrix4f normalMatrix = new Matrix4f();
+        normalMatrix.loadMultiply(new Matrix4f(viewMatrix), new Matrix4f(modelMatrix));
+        normalMatrix.inverse();
+        normalMatrix.transpose();
+        GLES20.glUniformMatrix4fv(mNormalMatrixHandle, 1, false, normalMatrix.getArray(), 0);
+        // 在view空间计算光方向
+        final Matrix4f lightDirectionMatrix = new Matrix4f(viewMatrix);
+        lightDirectionMatrix.inverse();
+        lightDirectionMatrix.transpose();
+        GLES20.glUniformMatrix4fv(mLightMatrixHandle, 1, false, lightDirectionMatrix.getArray(), 0);
 
         int materialDiffusePosHandle = GLES20.glGetUniformLocation(shaderProgram, "material.diffuse");
         int materialSpecularPosHandle = GLES20.glGetUniformLocation(shaderProgram, "material.specular");
         int materialShininessPosHandle = GLES20.glGetUniformLocation(shaderProgram, "material.shininess");
         OpenGLUtil.bindTexture(materialDiffusePosHandle, diffuse, 0);
         OpenGLUtil.bindTexture(materialSpecularPosHandle, specular, 1);
-        GLES20.glUniform1f(materialShininessPosHandle, 32f);
+        GLES20.glUniform1f(materialShininessPosHandle, 128f);
 
         int lightDirectionPosHandle = GLES20.glGetUniformLocation(shaderProgram, "light.direction");
         int lightAmbientPosHandle = GLES20.glGetUniformLocation(shaderProgram, "light.ambient");
         int lightDiffusePosHandle = GLES20.glGetUniformLocation(shaderProgram, "light.diffuse");
         int lightSpecularPosHandle = GLES20.glGetUniformLocation(shaderProgram, "light.specular");
-
-        GLES20.glUniform3f(lightDirectionPosHandle, -1.0f, -1.0f, -0.3f);
+        GLES20.glUniform3f(lightDirectionPosHandle, lightDirection[0], lightDirection[1], lightDirection[2]);
         GLES20.glUniform3f(lightAmbientPosHandle, 0.2f, 0.2f, 0.2f);
         GLES20.glUniform3f(lightDiffusePosHandle, 0.5f, 0.5f, 0.5f);
         GLES20.glUniform3f(lightSpecularPosHandle, 1.0f, 1.0f, 1.0f);

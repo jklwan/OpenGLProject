@@ -1,5 +1,6 @@
 uniform mat4 uMVMatrix;
 uniform mat4 uMVPMatrix;
+uniform mat4 normalMatrix;
 
 attribute vec4 aPosition;
 // 法向量
@@ -12,7 +13,7 @@ varying vec2 TextCoord;
 
 void main() {
     fragPos = vec3(uMVMatrix * aPosition);
-    norm = normalize(vec3(uMVMatrix * vec4(aNormal, 0.0)));
+    norm = normalize(mat3(normalMatrix) * aNormal);
     TextCoord = aTextCoords;
     gl_Position = uMVPMatrix * aPosition;
 }
