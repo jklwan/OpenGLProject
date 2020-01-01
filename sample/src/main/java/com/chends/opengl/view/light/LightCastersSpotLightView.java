@@ -2,16 +2,16 @@ package com.chends.opengl.view.light;
 
 import android.content.Context;
 
-import com.chends.opengl.renderer.light.LightCastersDirectionalRenderer;
+import com.chends.opengl.renderer.light.LightCastersSpotLightRenderer;
 import com.chends.opengl.utils.OpenGLUtil;
 import com.chends.opengl.view.BaseGLView;
 
 /**
- * 投光物-定向光
+ * 投光物-聚光灯
  * @author chends create on 2019/12/27.
  */
-public class LightCastersDirectionalView extends BaseGLView {
-    public LightCastersDirectionalView(Context context) {
+public class LightCastersSpotLightView extends BaseGLView {
+    public LightCastersSpotLightView(Context context) {
         super(context);
     }
 
@@ -21,7 +21,7 @@ public class LightCastersDirectionalView extends BaseGLView {
         //setEGLContextClientVersion(2);
         setEGLContextFactory(OpenGLUtil.createFactory());
         // 设置Renderer
-        setRenderer(new LightCastersDirectionalRenderer(getContext()));
+        setRenderer(new LightCastersSpotLightRenderer(getContext()));
         // 设置渲染模式（默认RENDERMODE_CONTINUOUSLY）
         //setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
     }
