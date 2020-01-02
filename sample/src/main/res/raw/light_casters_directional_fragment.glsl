@@ -36,7 +36,7 @@ void main() {
         spec = 0.1;
     }*/
     vec3 specular = spec * light.specular * texture2D(material.specular, TextCoord).rgb;
-    specular = spec * light.specular;
+
     // 结果
     vec3 result = ambient + diffuse + specular;
 

@@ -18,6 +18,7 @@ import com.chends.opengl.view.light.LightCastersDirectionalView;
 import com.chends.opengl.view.light.LightCastersPointView;
 import com.chends.opengl.view.light.LightCastersSpotLightView;
 import com.chends.opengl.view.light.LightMapsView;
+import com.chends.opengl.view.light.LightMultipleLightsView;
 import com.chends.opengl.view.light.LightView;
 import com.chends.opengl.view.light.MaterialsView;
 import com.chends.opengl.view.light.PhongLightView;
@@ -137,6 +138,8 @@ public class MainActivity extends AppCompatActivity {
         light.addItem(new MenuItemBean("投光物-定向光", LightCastersDirectionalView.class));
         light.addItem(new MenuItemBean("投光物-点光源", LightCastersPointView.class));
         light.addItem(new MenuItemBean("投光物-聚光", LightCastersSpotLightView.class));
+        light.addItem(new MenuItemBean("多光源", LightMultipleLightsView.class));
+
         list.add(light);
         menu1.setLayoutManager(new LinearLayoutManager(this));
         menu2.setLayoutManager(new LinearLayoutManager(this));
