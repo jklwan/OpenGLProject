@@ -22,6 +22,7 @@ import com.chends.opengl.view.light.LightMultipleLightsView;
 import com.chends.opengl.view.light.LightView;
 import com.chends.opengl.view.light.MaterialsView;
 import com.chends.opengl.view.light.PhongLightView;
+import com.chends.opengl.view.model.LoadModelView;
 import com.chends.opengl.view.texture.TextureColorView;
 import com.chends.opengl.view.texture.TextureOverView;
 import com.chends.opengl.view.texture.TextureView;
@@ -139,8 +140,13 @@ public class MainActivity extends AppCompatActivity {
         light.addItem(new MenuItemBean("投光物-点光源", LightCastersPointView.class));
         light.addItem(new MenuItemBean("投光物-聚光", LightCastersSpotLightView.class));
         light.addItem(new MenuItemBean("多光源", LightMultipleLightsView.class));
-
         list.add(light);
+
+        MenuBean model = new MenuBean("模型");
+        model.addItem(new MenuItemBean("模型加载-基础", LoadModelView.class));
+
+        list.add(model);
+
         menu1.setLayoutManager(new LinearLayoutManager(this));
         menu2.setLayoutManager(new LinearLayoutManager(this));
         subAdapter = new SubAdapter();
