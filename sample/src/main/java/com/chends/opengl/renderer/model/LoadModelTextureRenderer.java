@@ -1,18 +1,23 @@
 package com.chends.opengl.renderer.model;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
 import android.os.SystemClock;
 import android.renderscript.Matrix4f;
+import android.text.TextUtils;
 
 import com.chends.opengl.R;
 import com.chends.opengl.model.model.ObjectBean;
 import com.chends.opengl.renderer.BaseRenderer;
+import com.chends.opengl.utils.LogUtil;
 import com.chends.opengl.utils.OpenGLUtil;
 import com.chends.opengl.utils.model.LoadObjectUtil;
 
+import java.io.IOException;
 import java.util.List;
 
 import javax.microedition.khronos.opengles.GL10;
@@ -20,15 +25,15 @@ import javax.microedition.khronos.opengles.GL10;
 /**
  * @author chends create on 2020/1/4.
  */
-public class LoadModelMaterialRenderer extends BaseRenderer {
+public class LoadModelTextureRenderer extends BaseRenderer {
 
-    public LoadModelMaterialRenderer(Context context) {
+    public LoadModelTextureRenderer(Context context) {
         super(context);
         bg = Color.GRAY;
-        list = LoadObjectUtil.loadObject("door/door.obj", context.getResources(), "door");
+        list = LoadObjectUtil.loadObject("flower/flower.obj", context.getResources(), "flower");
 
-        vertexShaderCode = OpenGLUtil.getShaderFromResources(context, R.raw.model_material_load_vertex);
-        fragmentShaderCode = OpenGLUtil.getShaderFromResources(context, R.raw.model_material_load_fragment);
+        vertexShaderCode = OpenGLUtil.getShaderFromResources(context, R.raw.model_texture_load_vertex);
+        fragmentShaderCode = OpenGLUtil.getShaderFromResources(context, R.raw.model_texture_load_fragment);
 
         color = new float[]{1f, 1f, 1f, 1f};
         vertexLightShaderCode =
@@ -56,17 +61,17 @@ public class LoadModelMaterialRenderer extends BaseRenderer {
     private float angle = 0;
     private List<ObjectBean> list;
     private String vertexLightShaderCode, fragmentLightShaderCode;
-    private float[] mLightPosInModelSpace = new float[]{0f, 0f, 200f, 1f};
+    private float[] mLightPosInModelSpace = new float[]{0f, 0f, 30f, 1f};
     private final float[] mLightPosInWorldSpace = new float[4], mLightPosInEyeSpace = new float[4];
 
-    private float[] mViewPos = new float[]{0f, 0f, 300f, 1f};
+    private float[] mViewPos = new float[]{0f, 0f, 50f, 1f};
 
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         super.onSurfaceChanged(gl, width, height);
         float ratio = (float) width / height;
 
-        Matrix.frustumM(projectionMatrix, 0, -ratio, ratio, -1, 1, 1f, 1000f);
+        Matrix.frustumM(projectionMatrix, 0, -ratio, ratio, -1, 1, 1f, 200f);
         Matrix.setLookAtM(viewMatrix, 0, mViewPos[0], mViewPos[1], mViewPos[2],
                 0f, 0f, 0f,
                 0f, 1.0f, 0.0f);
@@ -86,26 +91,26 @@ public class LoadModelMaterialRenderer extends BaseRenderer {
         Matrix.multiplyMV(mLightPosInEyeSpace, 0, viewMatrix, 0, mLightPosInWorldSpace, 0);
 
         Matrix.setIdentityM(modelMatrix, 0);
+        Matrix.translateM(modelMatrix, 0, 0f, -20.0f, 0.0f);
         Matrix.rotateM(modelMatrix, 0, -90, 1.0f, 0.0f, 0.0f);
 
         drawModel();
 
         drawLight();
-
     }
-
 
     /**
      * 绘制物体
      */
     private void drawModel() {
         int shaderProgram = OpenGLUtil.createProgram(vertexShaderCode, fragmentShaderCode, new String[]{
-                "aPosition", "aNormal"});
+                "aPosition", "aNormal", "aTextCoords"});
         GLES20.glUseProgram(shaderProgram);
         // 顶点坐标
         int positionHandle = GLES20.glGetAttribLocation(shaderProgram, "aPosition");
         // 法向量
         int normalHandle = GLES20.glGetAttribLocation(shaderProgram, "aNormal");
+        int textHandle = GLES20.glGetAttribLocation(shaderProgram, "aTextCoords");
 
         int mMVMatrixHandle = GLES20.glGetUniformLocation(shaderProgram, "uMVMatrix");
         int mMVPMatrixHandle = GLES20.glGetUniformLocation(shaderProgram, "uMVPMatrix");
@@ -126,13 +131,8 @@ public class LoadModelMaterialRenderer extends BaseRenderer {
         int materialDiffusePosHandle = GLES20.glGetUniformLocation(shaderProgram, "material.diffuse");
         int materialSpecularPosHandle = GLES20.glGetUniformLocation(shaderProgram, "material.specular");
         int materialShininessPosHandle = GLES20.glGetUniformLocation(shaderProgram, "material.shininess");
-        int materialAmbientColorPosHandle = GLES20.glGetUniformLocation(shaderProgram, "material.ambientColor");
-        int materialDiffuseColorPosHandle = GLES20.glGetUniformLocation(shaderProgram, "material.diffuseColor");
-        int materialSpecularColorPosHandle = GLES20.glGetUniformLocation(shaderProgram, "material.specularColor");
         int materialAlphaPosHandle = GLES20.glGetUniformLocation(shaderProgram, "material.alpha");
-        GLES20.glUniform3f(materialAmbientPosHandle, 1.0f, 0.5f, 0.31f);
-        GLES20.glUniform3f(materialDiffusePosHandle, 1.0f, 0.5f, 0.31f);
-        GLES20.glUniform3f(materialSpecularPosHandle, 0.5f, 0.5f, 0.5f);
+        int materialHasSpecularPosHandle = GLES20.glGetUniformLocation(shaderProgram, "material.hasSpecular");
 
         int lightAmbientPosHandle = GLES20.glGetUniformLocation(shaderProgram, "light.ambient");
         int lightDiffusePosHandle = GLES20.glGetUniformLocation(shaderProgram, "light.diffuse");
@@ -153,10 +153,57 @@ public class LoadModelMaterialRenderer extends BaseRenderer {
                     GLES20.glEnableVertexAttribArray(normalHandle);
                     GLES20.glVertexAttribPointer(normalHandle, 3, GLES20.GL_FLOAT,
                             false, 3 * 4, OpenGLUtil.createFloatBuffer(item.aNormals));
+                    GLES20.glEnableVertexAttribArray(textHandle);
+                    GLES20.glVertexAttribPointer(textHandle, 2, GLES20.GL_FLOAT,
+                            false, 8 * 4,  OpenGLUtil.createFloatBuffer(item.aTexCoords));
+
                     if (item.mtl != null) {
-                        GLES20.glUniform3f(materialAmbientColorPosHandle, item.mtl.Ka_Color[0], item.mtl.Ka_Color[1], item.mtl.Ka_Color[2]);
-                        GLES20.glUniform3f(materialDiffuseColorPosHandle, item.mtl.Kd_Color[0], item.mtl.Kd_Color[1], item.mtl.Kd_Color[2]);
-                        GLES20.glUniform3f(materialSpecularColorPosHandle, item.mtl.Ks_Color[0], item.mtl.Ks_Color[1], item.mtl.Ks_Color[2]);
+                        if (!TextUtils.isEmpty(item.mtl.Kd_Texture)) {
+                            if (item.diffuse < 0) {
+                                try {
+                                    Bitmap bitmap = BitmapFactory.decodeStream(context.getAssets().open(
+                                            "flower/" + item.mtl.Kd_Texture));
+                                    item.diffuse = OpenGLUtil.createTextureNormal(bitmap);
+                                    bitmap.recycle();
+                                } catch (IOException e) {
+                                    LogUtil.e(e);
+                                }
+                            }
+                            if (TextUtils.equals(item.mtl.Kd_Texture, item.mtl.Ka_Texture)) {
+                                // 相同
+                                item.ambient = item.diffuse;
+                            } else {
+                                if (item.ambient < 0) {
+                                    try {
+                                        Bitmap bitmap = BitmapFactory.decodeStream(context.getAssets().open(
+                                                "flower/" + item.mtl.Ka_Texture));
+                                        item.ambient = OpenGLUtil.createTextureNormal(bitmap);
+                                        bitmap.recycle();
+                                    } catch (IOException e) {
+                                        LogUtil.e(e);
+                                    }
+                                }
+                            }
+                            OpenGLUtil.bindTexture(materialAmbientPosHandle, item.ambient, 0);
+                            OpenGLUtil.bindTexture(materialDiffusePosHandle, item.diffuse, 0);
+                            if (!TextUtils.isEmpty(item.mtl.Ks_Texture)) {
+                                if (item.specular < 0) {
+                                    try {
+                                        Bitmap bitmap = BitmapFactory.decodeStream(context.getAssets().open(
+                                                "flower/" + item.mtl.Ks_Texture));
+                                        item.specular = OpenGLUtil.createTextureNormal(bitmap);
+                                        bitmap.recycle();
+                                    } catch (IOException e) {
+                                        LogUtil.e(e);
+                                    }
+                                }
+                                GLES20.glUniform1i(materialHasSpecularPosHandle, 1);
+                                OpenGLUtil.bindTexture(materialSpecularPosHandle, item.specular, 1);
+                            } else {
+                                GLES20.glUniform1i(materialHasSpecularPosHandle, 0);
+                            }
+                        }
+
                         GLES20.glUniform1f(materialAlphaPosHandle, item.mtl.alpha);
                         GLES20.glUniform1f(materialShininessPosHandle, item.mtl.ns);
                     }
@@ -168,6 +215,8 @@ public class LoadModelMaterialRenderer extends BaseRenderer {
 
         GLES20.glDisableVertexAttribArray(positionHandle);
         GLES20.glDisableVertexAttribArray(normalHandle);
+        GLES20.glDisableVertexAttribArray(textHandle);
+
     }
 
     /**

@@ -35,4 +35,8 @@ public class ObjectBean {
      * 存放法向量数据
      */
     public List<Integer> normalIndices = new ArrayList<>();
+
+    public int ambient = -1;
+    public int diffuse = -1;
+    public int specular = -1;
 }

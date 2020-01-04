@@ -1,9 +1,8 @@
 package com.chends.opengl.view.model;
 
 import android.content.Context;
-import android.opengl.GLSurfaceView;
 
-import com.chends.opengl.renderer.model.LoadModelRenderer;
+import com.chends.opengl.renderer.model.LoadModelTextureRenderer;
 import com.chends.opengl.utils.OpenGLUtil;
 import com.chends.opengl.view.BaseGLView;
 
@@ -22,8 +21,8 @@ public class LoadModelTextureView extends BaseGLView {
         //setEGLContextClientVersion(2);
         setEGLContextFactory(OpenGLUtil.createFactory());
         // 设置Renderer
-        setRenderer(new LoadModelRenderer(getContext()));
+        setRenderer(new LoadModelTextureRenderer(getContext()));
         // 设置渲染模式（默认RENDERMODE_CONTINUOUSLY）
-        setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+        //setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
     }
 }
