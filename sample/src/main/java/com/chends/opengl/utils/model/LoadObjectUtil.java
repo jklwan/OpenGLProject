@@ -8,6 +8,7 @@ import com.chends.opengl.model.model.ObjectBean;
 import com.chends.opengl.utils.LogUtil;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -68,7 +69,22 @@ public class LoadObjectUtil {
         } catch (IOException e) {
             LogUtil.e(e);
         }
-        return loadObject(stream, res);
+        return loadObject(stream, res,null);
+    }
+
+    /**
+     * 读取模型文件信息
+     * @param assets assets
+     * @return list
+     */
+    public static List<ObjectBean> loadObject(String assets, Resources res, String parent) {
+        InputStream stream = null;
+        try {
+            stream = res.getAssets().open(assets);
+        } catch (IOException e) {
+            LogUtil.e(e);
+        }
+        return loadObject(stream, res, parent);
     }
 
     /**
@@ -76,7 +92,7 @@ public class LoadObjectUtil {
      * @param stream stream
      * @return list
      */
-    public static List<ObjectBean> loadObject(InputStream stream, Resources res) {
+    public static List<ObjectBean> loadObject(InputStream stream, Resources res, String parent) {
         List<ObjectBean> result = new ArrayList<>();
         // 顶点数据
         ArrayList<Float> vertices = new ArrayList<>();
@@ -104,7 +120,7 @@ public class LoadObjectUtil {
                         continue;
                     }
                     // 以空格分隔
-                    parts = new StringTokenizer(line, " ");
+                    parts = new StringTokenizer(line.trim(), " ");
                     numTokens = parts.countTokens();
                     if (numTokens == 0) {
                         continue;
@@ -122,7 +138,8 @@ public class LoadObjectUtil {
                             String mtlPath = parts.nextToken();
                             // 加载材质信息
                             if (!TextUtils.isEmpty(mtlPath)) {
-                                mtlMap = LoadMtlUtil.loadMtl(mtlPath, res);
+                                mtlMap = LoadMtlUtil.loadMtl(TextUtils.isEmpty(parent)? "" :
+                                        parent + File.separator + mtlPath, res);
                             }
                             break;
                         case O:

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
 
+import com.chends.opengl.R;
 import com.chends.opengl.model.model.ObjectBean;
 import com.chends.opengl.renderer.BaseRenderer;
 import com.chends.opengl.utils.OpenGLUtil;
@@ -21,17 +22,8 @@ public class LoadModelRenderer extends BaseRenderer {
     public LoadModelRenderer(Context context) {
         super(context);
         list = LoadObjectUtil.loadObject("deer.obj", context.getResources());
-        vertexShaderCode =
-                "uniform mat4 uMVPMatrix;" +
-                        "attribute vec4 aPosition;" +
-                        "void main() {" +
-                        "  gl_Position = uMVPMatrix * aPosition;" +
-                        "}";
-        fragmentShaderCode =
-                "precision mediump float;" +
-                        "void main() {" +
-                        "  gl_FragColor = vec4(1.0);" +
-                        "}";
+        vertexShaderCode = OpenGLUtil.getShaderFromResources(context, R.raw.model_load_vertex);
+        fragmentShaderCode = OpenGLUtil.getShaderFromResources(context, R.raw.model_load_fragment);
     }
 
     private final float[] MVPMatrix = new float[16], projectionMatrix = new float[16],

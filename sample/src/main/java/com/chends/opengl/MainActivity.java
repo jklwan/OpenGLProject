@@ -22,6 +22,8 @@ import com.chends.opengl.view.light.LightMultipleLightsView;
 import com.chends.opengl.view.light.LightView;
 import com.chends.opengl.view.light.MaterialsView;
 import com.chends.opengl.view.light.PhongLightView;
+import com.chends.opengl.view.model.LoadModelMaterialView;
+import com.chends.opengl.view.model.LoadModelTextureView;
 import com.chends.opengl.view.model.LoadModelView;
 import com.chends.opengl.view.texture.TextureColorView;
 import com.chends.opengl.view.texture.TextureOverView;
@@ -144,6 +146,8 @@ public class MainActivity extends AppCompatActivity {
 
         MenuBean model = new MenuBean("模型");
         model.addItem(new MenuItemBean("模型加载-基础", LoadModelView.class));
+        model.addItem(new MenuItemBean("模型加载-材料", LoadModelMaterialView.class));
+        model.addItem(new MenuItemBean("模型加载-纹理", LoadModelTextureView.class));
 
         list.add(model);
 
