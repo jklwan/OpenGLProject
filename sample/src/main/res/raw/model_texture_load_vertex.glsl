@@ -12,9 +12,7 @@ varying vec3 norm;
 varying vec2 TextCoord;
 
 void main() {
-    // 转换坐标
     fragPos = vec3(uMVMatrix * aPosition);
-    // 归一化法向量
     norm = normalize(mat3(normalMatrix) * aNormal);
     TextCoord = aTextCoords;
     gl_Position = uMVPMatrix * aPosition;

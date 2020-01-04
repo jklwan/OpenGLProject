@@ -168,6 +168,7 @@ public class LoadModelMaterialRenderer extends BaseRenderer {
 
         GLES20.glDisableVertexAttribArray(positionHandle);
         GLES20.glDisableVertexAttribArray(normalHandle);
+        GLES20.glDeleteProgram(shaderProgram);
     }
 
     /**
@@ -197,5 +198,6 @@ public class LoadModelMaterialRenderer extends BaseRenderer {
         GLES20.glDrawArrays(GLES20.GL_POINTS, 0, 1);
 
         GLES20.glDisableVertexAttribArray(lightPositionHandle);
+        GLES20.glDeleteProgram(lightProgram);
     }
 }

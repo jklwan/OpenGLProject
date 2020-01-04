@@ -1,5 +1,4 @@
 precision mediump float;
-
 varying vec2 TextCoord;
 varying vec3 fragPos;
 varying vec3 norm;
@@ -8,7 +7,6 @@ varying vec3 norm;
 struct Material {
     sampler2D ambient;
     sampler2D diffuse;
-    int hasSpecular;
     sampler2D specular;
 
     float shininess;
@@ -40,13 +38,9 @@ void main() {
     vec3 viewDir = normalize(-fragPos);
     vec3 reflectDir = reflect(-lightDir, norm);
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
-    vec3 specular = spec * light.specular;
-    if (material.hasSpecular == 1){
-        specular *=  texture2D(material.specular, TextCoord).rgb;
-    } else {
-        specular *= vec3(0.0, 0.0, 0.0);
-    }
+    vec3 specular = (spec * light.specular) * texture2D(material.specular, TextCoord).rgb;
     // 结果
     vec3 result = (ambient + diffuse + specular);
+
     gl_FragColor = vec4(result, material.alpha);
 }

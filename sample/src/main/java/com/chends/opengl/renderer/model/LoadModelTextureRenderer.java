@@ -132,12 +132,11 @@ public class LoadModelTextureRenderer extends BaseRenderer {
         int materialSpecularPosHandle = GLES20.glGetUniformLocation(shaderProgram, "material.specular");
         int materialShininessPosHandle = GLES20.glGetUniformLocation(shaderProgram, "material.shininess");
         int materialAlphaPosHandle = GLES20.glGetUniformLocation(shaderProgram, "material.alpha");
-        int materialHasSpecularPosHandle = GLES20.glGetUniformLocation(shaderProgram, "material.hasSpecular");
 
+        int lightPosHandle = GLES20.glGetUniformLocation(shaderProgram, "light.position");
         int lightAmbientPosHandle = GLES20.glGetUniformLocation(shaderProgram, "light.ambient");
         int lightDiffusePosHandle = GLES20.glGetUniformLocation(shaderProgram, "light.diffuse");
         int lightSpecularPosHandle = GLES20.glGetUniformLocation(shaderProgram, "light.specular");
-        int lightPosHandle = GLES20.glGetUniformLocation(shaderProgram, "light.position");
         GLES20.glUniform3f(lightPosHandle, mLightPosInEyeSpace[0], mLightPosInEyeSpace[1], mLightPosInEyeSpace[2]);
 
         GLES20.glUniform3f(lightAmbientPosHandle, 0.2f * color[0], 0.2f * color[1], 0.2f * color[2]);
@@ -155,7 +154,7 @@ public class LoadModelTextureRenderer extends BaseRenderer {
                             false, 3 * 4, OpenGLUtil.createFloatBuffer(item.aNormals));
                     GLES20.glEnableVertexAttribArray(textHandle);
                     GLES20.glVertexAttribPointer(textHandle, 2, GLES20.GL_FLOAT,
-                            false, 8 * 4,  OpenGLUtil.createFloatBuffer(item.aTexCoords));
+                            false, 2 * 4, OpenGLUtil.createFloatBuffer(item.aTexCoords));
 
                     if (item.mtl != null) {
                         if (!TextUtils.isEmpty(item.mtl.Kd_Texture)) {
@@ -197,11 +196,14 @@ public class LoadModelTextureRenderer extends BaseRenderer {
                                         LogUtil.e(e);
                                     }
                                 }
-                                GLES20.glUniform1i(materialHasSpecularPosHandle, 1);
-                                OpenGLUtil.bindTexture(materialSpecularPosHandle, item.specular, 1);
                             } else {
-                                GLES20.glUniform1i(materialHasSpecularPosHandle, 0);
+                                if (item.specular < 0) {
+                                    Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.ic_default_specular);
+                                    item.specular = OpenGLUtil.createTextureNormal(bitmap);
+                                    bitmap.recycle();
+                                }
                             }
+                            OpenGLUtil.bindTexture(materialSpecularPosHandle, item.specular, 1);
                         }
 
                         GLES20.glUniform1f(materialAlphaPosHandle, item.mtl.alpha);
@@ -216,6 +218,7 @@ public class LoadModelTextureRenderer extends BaseRenderer {
         GLES20.glDisableVertexAttribArray(positionHandle);
         GLES20.glDisableVertexAttribArray(normalHandle);
         GLES20.glDisableVertexAttribArray(textHandle);
+        GLES20.glDeleteProgram(shaderProgram);
 
     }
 
@@ -246,5 +249,6 @@ public class LoadModelTextureRenderer extends BaseRenderer {
         GLES20.glDrawArrays(GLES20.GL_POINTS, 0, 1);
 
         GLES20.glDisableVertexAttribArray(lightPositionHandle);
+        GLES20.glDeleteProgram(lightProgram);
     }
 }
