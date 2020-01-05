@@ -27,10 +27,11 @@ import javax.microedition.khronos.opengles.GL10;
  */
 public class LoadModelTextureRenderer extends BaseRenderer {
 
+    private String dir = "nanosuit";
     public LoadModelTextureRenderer(Context context) {
         super(context);
         bg = Color.GRAY;
-        list = LoadObjectUtil.loadObject("flower/flower.obj", context.getResources(), "flower");
+        list = LoadObjectUtil.loadObject(dir + "/nanosuit.obj", context.getResources(), dir);
 
         vertexShaderCode = OpenGLUtil.getShaderFromResources(context, R.raw.model_texture_load_vertex);
         fragmentShaderCode = OpenGLUtil.getShaderFromResources(context, R.raw.model_texture_load_fragment);
@@ -61,17 +62,17 @@ public class LoadModelTextureRenderer extends BaseRenderer {
     private float angle = 0;
     private List<ObjectBean> list;
     private String vertexLightShaderCode, fragmentLightShaderCode;
-    private float[] mLightPosInModelSpace = new float[]{0f, 0f, 30f, 1f};
+    private float[] mLightPosInModelSpace = new float[]{0f, 0f, 5f, 1f};
     private final float[] mLightPosInWorldSpace = new float[4], mLightPosInEyeSpace = new float[4];
 
-    private float[] mViewPos = new float[]{0f, 0f, 50f, 1f};
+    private float[] mViewPos = new float[]{0f, 0f, 12f, 1f};
 
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         super.onSurfaceChanged(gl, width, height);
         float ratio = (float) width / height;
 
-        Matrix.frustumM(projectionMatrix, 0, -ratio, ratio, -1, 1, 1f, 200f);
+        Matrix.frustumM(projectionMatrix, 0, -ratio, ratio, -1, 1, 1f, 1200f);
         Matrix.setLookAtM(viewMatrix, 0, mViewPos[0], mViewPos[1], mViewPos[2],
                 0f, 0f, 0f,
                 0f, 1.0f, 0.0f);
@@ -91,8 +92,8 @@ public class LoadModelTextureRenderer extends BaseRenderer {
         Matrix.multiplyMV(mLightPosInEyeSpace, 0, viewMatrix, 0, mLightPosInWorldSpace, 0);
 
         Matrix.setIdentityM(modelMatrix, 0);
-        Matrix.translateM(modelMatrix, 0, 0f, -20.0f, 0.0f);
-        Matrix.rotateM(modelMatrix, 0, -90, 1.0f, 0.0f, 0.0f);
+        Matrix.translateM(modelMatrix, 0, 0f, -12.0f, 0.0f);
+        //Matrix.rotateM(modelMatrix, 0, -90, 1.0f, 0.0f, 0.0f);
 
         drawModel();
 
@@ -139,8 +140,8 @@ public class LoadModelTextureRenderer extends BaseRenderer {
         int lightSpecularPosHandle = GLES20.glGetUniformLocation(shaderProgram, "light.specular");
         GLES20.glUniform3f(lightPosHandle, mLightPosInEyeSpace[0], mLightPosInEyeSpace[1], mLightPosInEyeSpace[2]);
 
-        GLES20.glUniform3f(lightAmbientPosHandle, 0.2f * color[0], 0.2f * color[1], 0.2f * color[2]);
-        GLES20.glUniform3f(lightDiffusePosHandle, 0.5f * color[0], 0.5f * color[1], 0.5f * color[2]);
+        GLES20.glUniform3f(lightAmbientPosHandle, 0.5f * color[0], 0.5f * color[1], 0.5f * color[2]);
+        GLES20.glUniform3f(lightDiffusePosHandle, 0.6f * color[0], 0.6f * color[1], 0.6f * color[2]);
         GLES20.glUniform3f(lightSpecularPosHandle, 1.0f, 1.0f, 1.0f);
 
         if (list != null && !list.isEmpty()) {
@@ -161,50 +162,65 @@ public class LoadModelTextureRenderer extends BaseRenderer {
                             if (item.diffuse < 0) {
                                 try {
                                     Bitmap bitmap = BitmapFactory.decodeStream(context.getAssets().open(
-                                            "flower/" + item.mtl.Kd_Texture));
+                                            dir + "/" + item.mtl.Kd_Texture));
                                     item.diffuse = OpenGLUtil.createTextureNormal(bitmap);
                                     bitmap.recycle();
                                 } catch (IOException e) {
                                     LogUtil.e(e);
                                 }
                             }
-                            if (TextUtils.equals(item.mtl.Kd_Texture, item.mtl.Ka_Texture)) {
-                                // 相同
-                                item.ambient = item.diffuse;
-                            } else {
+                        } else{
+                            if (item.diffuse < 0) {
+                                Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.ic_default_texture);
+                                item.diffuse = OpenGLUtil.createTextureNormal(bitmap);
+                                bitmap.recycle();
+                            }
+                        }
+                        if (TextUtils.equals(item.mtl.Kd_Texture, item.mtl.Ka_Texture)) {
+                            // 相同
+                            item.ambient = item.diffuse;
+                        } else {
+                            if (!TextUtils.isEmpty(item.mtl.Ka_Texture)) {
                                 if (item.ambient < 0) {
                                     try {
                                         Bitmap bitmap = BitmapFactory.decodeStream(context.getAssets().open(
-                                                "flower/" + item.mtl.Ka_Texture));
+                                                dir + "/" + item.mtl.Ka_Texture));
                                         item.ambient = OpenGLUtil.createTextureNormal(bitmap);
                                         bitmap.recycle();
                                     } catch (IOException e) {
                                         LogUtil.e(e);
                                     }
                                 }
-                            }
-                            OpenGLUtil.bindTexture(materialAmbientPosHandle, item.ambient, 0);
-                            OpenGLUtil.bindTexture(materialDiffusePosHandle, item.diffuse, 0);
-                            if (!TextUtils.isEmpty(item.mtl.Ks_Texture)) {
-                                if (item.specular < 0) {
-                                    try {
-                                        Bitmap bitmap = BitmapFactory.decodeStream(context.getAssets().open(
-                                                "flower/" + item.mtl.Ks_Texture));
-                                        item.specular = OpenGLUtil.createTextureNormal(bitmap);
-                                        bitmap.recycle();
-                                    } catch (IOException e) {
-                                        LogUtil.e(e);
-                                    }
-                                }
-                            } else {
-                                if (item.specular < 0) {
-                                    Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.ic_default_specular);
-                                    item.specular = OpenGLUtil.createTextureNormal(bitmap);
+                            } else{
+                                if (item.ambient < 0) {
+                                    Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.ic_default_texture);
+                                    item.ambient = OpenGLUtil.createTextureNormal(bitmap);
                                     bitmap.recycle();
                                 }
                             }
-                            OpenGLUtil.bindTexture(materialSpecularPosHandle, item.specular, 1);
                         }
+                        OpenGLUtil.bindTexture(materialAmbientPosHandle, item.ambient, 0);
+                        OpenGLUtil.bindTexture(materialDiffusePosHandle, item.diffuse, 0);
+
+                        if (!TextUtils.isEmpty(item.mtl.Ks_Texture)) {
+                            if (item.specular < 0) {
+                                try {
+                                    Bitmap bitmap = BitmapFactory.decodeStream(context.getAssets().open(
+                                            dir + "/" + item.mtl.Ks_Texture));
+                                    item.specular = OpenGLUtil.createTextureNormal(bitmap);
+                                    bitmap.recycle();
+                                } catch (IOException e) {
+                                    LogUtil.e(e);
+                                }
+                            }
+                        } else {
+                            if (item.specular < 0) {
+                                Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.ic_default_texture);
+                                item.specular = OpenGLUtil.createTextureNormal(bitmap);
+                                bitmap.recycle();
+                            }
+                        }
+                        OpenGLUtil.bindTexture(materialSpecularPosHandle, item.specular, 1);
 
                         GLES20.glUniform1f(materialAlphaPosHandle, item.mtl.alpha);
                         GLES20.glUniform1f(materialShininessPosHandle, item.mtl.ns);
