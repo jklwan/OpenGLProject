@@ -19,7 +19,13 @@ public class BaseGLView extends GLSurfaceView {
     public BaseGLView(Context context, AttributeSet attrs) {
         super(context, attrs);
         setDebug();
-        init();
+        if (createInit()) {
+            init();
+        }
+    }
+
+    protected boolean createInit() {
+        return true;
     }
 
     protected void setDebug() {

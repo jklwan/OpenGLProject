@@ -13,7 +13,9 @@ import android.widget.Toast;
 import com.chends.opengl.model.MenuBean;
 import com.chends.opengl.model.MenuItemBean;
 import com.chends.opengl.utils.DisplayUtil;
+import com.chends.opengl.utils.LogUtil;
 import com.chends.opengl.utils.OpenGLUtil;
+import com.chends.opengl.view.advanced.opengl.DepthTestingFragment;
 import com.chends.opengl.view.light.LightCastersDirectionalView;
 import com.chends.opengl.view.light.LightCastersPointView;
 import com.chends.opengl.view.light.LightCastersSpotLightView;
@@ -148,8 +150,11 @@ public class MainActivity extends AppCompatActivity {
         model.addItem(new MenuItemBean("模型加载-基础", LoadModelView.class));
         model.addItem(new MenuItemBean("模型加载-材料", LoadModelMaterialView.class));
         model.addItem(new MenuItemBean("模型加载-纹理", LoadModelTextureView.class));
-
         list.add(model);
+
+        MenuBean aOpenGL = new MenuBean("高级OpenGL");
+        aOpenGL.addItem(new MenuItemBean("深度测试", DepthTestingFragment.class));
+        list.add(aOpenGL);
 
         menu1.setLayoutManager(new LinearLayoutManager(this));
         menu2.setLayoutManager(new LinearLayoutManager(this));
@@ -170,16 +175,19 @@ public class MainActivity extends AppCompatActivity {
                         ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            LogUtil.e(e);
             try {
                 Constructor<?> fragmentCons = item.fCls.getConstructor(new Class[]{});
                 content.removeAllViews();
                 Object object = fragmentCons.newInstance();
                 if (object instanceof Fragment) {
-                    getSupportFragmentManager().beginTransaction().replace(R.id.content, (Fragment) object);
+                    getSupportFragmentManager()
+                            .beginTransaction()
+                            .replace(R.id.content, (Fragment) object)
+                            .commitNowAllowingStateLoss();
                 }
             } catch (Exception ex) {
-                e.printStackTrace();
+                LogUtil.e(e);
             }
         }
     }
