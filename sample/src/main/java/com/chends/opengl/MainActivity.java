@@ -16,6 +16,7 @@ import com.chends.opengl.utils.DisplayUtil;
 import com.chends.opengl.utils.LogUtil;
 import com.chends.opengl.utils.OpenGLUtil;
 import com.chends.opengl.view.advanced.opengl.DepthTestingFragment;
+import com.chends.opengl.view.advanced.opengl.StencilTestingView;
 import com.chends.opengl.view.light.LightCastersDirectionalView;
 import com.chends.opengl.view.light.LightCastersPointView;
 import com.chends.opengl.view.light.LightCastersSpotLightView;
@@ -48,6 +49,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -154,6 +156,7 @@ public class MainActivity extends AppCompatActivity {
 
         MenuBean aOpenGL = new MenuBean("高级OpenGL");
         aOpenGL.addItem(new MenuItemBean("深度测试", DepthTestingFragment.class));
+        aOpenGL.addItem(new MenuItemBean("模板测试", StencilTestingView.class));
         list.add(aOpenGL);
 
         menu1.setLayoutManager(new LinearLayoutManager(this));
@@ -165,10 +168,19 @@ public class MainActivity extends AppCompatActivity {
 
     public void afterSelect(MenuItemBean item) {
         actionBar.setTitle(item.title);
+        List<Fragment> list = getSupportFragmentManager().getFragments();
+        if (!list.isEmpty()){
+            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+            for (Fragment fragment : list){
+                transaction.remove(fragment);
+            }
+            transaction.commitNowAllowingStateLoss();
+        } else {
+            content.removeAllViews();
+        }
         if (item.fCls == null) return;
         try {
             Constructor<?> viewCons = item.fCls.getConstructor(new Class[]{Context.class});
-            content.removeAllViews();
             Object object = viewCons.newInstance(this);
             if (object instanceof View) {
                 content.addView((View) object, new FrameLayout.LayoutParams(
@@ -178,7 +190,6 @@ public class MainActivity extends AppCompatActivity {
             LogUtil.e(e);
             try {
                 Constructor<?> fragmentCons = item.fCls.getConstructor(new Class[]{});
-                content.removeAllViews();
                 Object object = fragmentCons.newInstance();
                 if (object instanceof Fragment) {
                     getSupportFragmentManager()
