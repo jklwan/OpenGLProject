@@ -282,6 +282,15 @@ public class OpenGLUtil {
      * @return int
      */
     public static int createTextureNormal(Bitmap bitmap) {
+        return createTextureNormal(bitmap, false);
+    }
+
+    /**
+     * 加载bitmap纹理
+     * @param bitmap bitmap图片
+     * @return int
+     */
+    public static int createTextureNormal(Bitmap bitmap, boolean withAlpha) {
         int[] texture = new int[1];
         if (bitmap != null && !bitmap.isRecycled()) {
             //生成纹理
@@ -294,9 +303,9 @@ public class OpenGLUtil {
             GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER,
                     GLES20.GL_LINEAR);
             GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S,
-                    GLES20.GL_REPEAT);
+                    withAlpha ? GLES20.GL_CLAMP_TO_EDGE :GLES20.GL_REPEAT);
             GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T,
-                    GLES20.GL_REPEAT);
+                    withAlpha ? GLES20.GL_CLAMP_TO_EDGE :GLES20.GL_REPEAT);
             //根据以上指定的参数，生成一个2D纹理
             GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
             return texture[0];

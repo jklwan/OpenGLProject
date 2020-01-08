@@ -32,6 +32,7 @@ public class DepthTestingView extends BaseGLView {
 
     @Override
     protected void init() {
+
         setEGLContextFactory(OpenGLUtil.createFactory());
         setRenderer(new DepthTestingRenderer(getContext(), type));
         setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);

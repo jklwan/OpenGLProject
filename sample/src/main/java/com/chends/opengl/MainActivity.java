@@ -15,6 +15,7 @@ import com.chends.opengl.model.MenuItemBean;
 import com.chends.opengl.utils.DisplayUtil;
 import com.chends.opengl.utils.LogUtil;
 import com.chends.opengl.utils.OpenGLUtil;
+import com.chends.opengl.view.advanced.opengl.BlendingView;
 import com.chends.opengl.view.advanced.opengl.DepthTestingFragment;
 import com.chends.opengl.view.advanced.opengl.StencilTestingView;
 import com.chends.opengl.view.light.LightCastersDirectionalView;
@@ -157,6 +158,7 @@ public class MainActivity extends AppCompatActivity {
         MenuBean aOpenGL = new MenuBean("高级OpenGL");
         aOpenGL.addItem(new MenuItemBean("深度测试", DepthTestingFragment.class));
         aOpenGL.addItem(new MenuItemBean("模板测试", StencilTestingView.class));
+        aOpenGL.addItem(new MenuItemBean("混合", BlendingView.class));
         list.add(aOpenGL);
 
         menu1.setLayoutManager(new LinearLayoutManager(this));

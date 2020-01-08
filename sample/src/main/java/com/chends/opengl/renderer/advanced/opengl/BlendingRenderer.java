@@ -11,18 +11,20 @@ import com.chends.opengl.renderer.BaseRenderer;
 import com.chends.opengl.utils.OpenGLUtil;
 
 import java.nio.FloatBuffer;
+import java.util.Comparator;
+import java.util.Map;
+import java.util.TreeMap;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 /**
- * 模板测试
  * @author chends create on 2020/1/7.
  */
-public class StencilTestingRenderer extends BaseRenderer {
+public class BlendingRenderer extends BaseRenderer {
 
-    private int type = 0;
-    private float[] mViewPos = new float[]{0f, 0f, 4.5f, 1f};
+    private int type = 2;
+    private float[] mViewPos = new float[]{0f, 1f, 3f, 1f};
 
     private float[] cubeVertices = {
             // positions          // texture Coords
@@ -69,7 +71,7 @@ public class StencilTestingRenderer extends BaseRenderer {
             -0.5f, 0.5f, -0.5f, 0.0f, 1.0f
     };
     private float[] planeVertices = {
-            // positions          // texture Coords (note we set these higher than 1 (together with GL_REPEAT as texture wrapping mode). this will cause the floor texture to repeat)
+            // positions          // texture Coords
             5.0f, -0.5f, 5.0f, 2.0f, 0.0f,
             -5.0f, -0.5f, 5.0f, 0.0f, 0.0f,
             -5.0f, -0.5f, -5.0f, 0.0f, 2.0f,
@@ -78,30 +80,34 @@ public class StencilTestingRenderer extends BaseRenderer {
             -5.0f, -0.5f, -5.0f, 0.0f, 2.0f,
             5.0f, -0.5f, -5.0f, 2.0f, 2.0f
     };
+    private float[] transparentVertices = {
+            // positions         // texture Coords
+            0.0f, 0.5f, 0.0f, 0.0f, 0.0f,
+            0.0f, -0.5f, 0.0f, 0.0f, 1.0f,
+            1.0f, -0.5f, 0.0f, 1.0f, 1.0f,
 
-    private String singleColorVertex, singleColorFragment;
+            0.0f, 0.5f, 0.0f, 0.0f, 0.0f,
+            1.0f, -0.5f, 0.0f, 1.0f, 1.0f,
+            1.0f, 0.5f, 0.0f, 1.0f, 0.0f
+    };
 
-    public StencilTestingRenderer(Context context) {
+    private float[][] translate = new float[][]{
+            {-1.5f, 0.0f, -0.48f},
+            {1.5f, 0.0f, 0.51f},
+            {0.0f, 0.0f, 0.7f},
+            {-0.3f, 0.0f, -2.3f},
+            {0.5f, 0.0f, -0.6f}};
+
+    public BlendingRenderer(Context context) {
         super(context);
-        vertexShaderCode = OpenGLUtil.getShaderFromResources(context, R.raw.advanced_opengl_depth_testing_vertext);
-        fragmentShaderCode = OpenGLUtil.getShaderFromResources(context, R.raw.advanced_opengl_depth_testing_fragment);
-        singleColorVertex =
-                "uniform mat4 uMVPMatrix;" +
-                        "attribute vec4 aPosition;" +
-                        "void main() {" +
-                        "  gl_Position = uMVPMatrix * aPosition;" +
-                        "}";
-        singleColorFragment =
-                "precision mediump float;" +
-                        "void main() {" +
-                        "  gl_FragColor = vec4(0.04, 0.28, 0.26, 1.0);" +
-                        "}";
-
+        vertexShaderCode = OpenGLUtil.getShaderFromResources(context, R.raw.advanced_opengl_blending_vertext);
+        fragmentShaderCode = OpenGLUtil.getShaderFromResources(context, R.raw.advanced_opengl_blending_fragment);
     }
+
 
     private final float[] mMVPMatrix = new float[16], projectionMatrix = new float[16],
             viewMatrix = new float[16], modelMatrix = new float[16];
-    private int cubeTexture, floorTexture;
+    private int cubeTexture, floorTexture, grassTexture, windowTexture;
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
@@ -110,48 +116,52 @@ public class StencilTestingRenderer extends BaseRenderer {
                 R.drawable.ic_depth_testing_marble);
         Bitmap bitmap2 = BitmapFactory.decodeResource(context.getResources(),
                 R.drawable.ic_depth_testing_metal);
+        Bitmap bitmap3 = BitmapFactory.decodeResource(context.getResources(),
+                R.drawable.ic_blending_grass);
+        Bitmap bitmap4 = BitmapFactory.decodeResource(context.getResources(),
+                R.drawable.ic_blending_window);
 
         cubeTexture = OpenGLUtil.createTextureNormal(bitmap);
         floorTexture = OpenGLUtil.createTextureNormal(bitmap2);
+        grassTexture = OpenGLUtil.createTextureNormal(bitmap3, true);
+        windowTexture = OpenGLUtil.createTextureNormal(bitmap4);
         bitmap.recycle();
         bitmap2.recycle();
+        bitmap3.recycle();
+        bitmap4.recycle();
     }
 
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         super.onSurfaceChanged(gl, width, height);
-        GLES20.glDepthFunc(GLES20.GL_LESS);
-        GLES20.glEnable(GLES20.GL_STENCIL_TEST);
-        GLES20.glStencilOp(GLES20.GL_KEEP, GLES20.GL_KEEP, GLES20.GL_REPLACE);
-
+        if (type == 2) {
+            GLES20.glEnable(GLES20.GL_BLEND);
+            GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
+            mViewPos[0] = 1.2f;
+            mViewPos[1] = 0.6f;
+            mViewPos[2] = 2;
+        }
         float ratio = (float) width / height;
 
         // 设置透视投影矩阵，近点是3，远点是7
         Matrix.frustumM(projectionMatrix, 0, -ratio, ratio, -1, 1, 1f, 10f);
         Matrix.setLookAtM(viewMatrix, 0, mViewPos[0], mViewPos[1], mViewPos[2],
-                0f, 0f, 0f,
+                0.5f, 0f, 0f,
                 0f, 1.0f, 0.0f);
     }
 
     @Override
     public void onDrawFrame(GL10 gl) {
-        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_STENCIL_BUFFER_BIT);
-
-        // 保证地板不会更新模型缓冲
-        GLES20.glStencilFunc(GLES20.GL_NOTEQUAL, 1, 0xFF);
-        GLES20.glStencilMask(0x00);
+        super.onDrawFrame(gl);
         drawFloor();
 
-        GLES20.glStencilFunc(GLES20.GL_ALWAYS, 1, 0xFF);
-        GLES20.glStencilMask(0xFF);
         drawCube();
 
-        GLES20.glStencilFunc(GLES20.GL_NOTEQUAL, 1, 0xFF);
-        GLES20.glStencilMask(0x00);
-        GLES20.glDisable(GLES20.GL_DEPTH_TEST);
-        drawScaleCube();
-        GLES20.glStencilMask(0xFF);
-        GLES20.glEnable(GLES20.GL_DEPTH_TEST);
+        if (type == 2) {
+            drawWindow();
+        } else {
+            drawGrass();
+        }
     }
 
     private void drawFloor() {
@@ -196,7 +206,6 @@ public class StencilTestingRenderer extends BaseRenderer {
     }
 
     private void drawCube() {
-
         int shaderProgram = OpenGLUtil.createProgram(vertexShaderCode, fragmentShaderCode);
         GLES20.glUseProgram(shaderProgram);
 
@@ -216,6 +225,9 @@ public class StencilTestingRenderer extends BaseRenderer {
         int mMVPMatrixHandle = GLES20.glGetUniformLocation(shaderProgram, "uMVPMatrix");
         int typeHandle = GLES20.glGetUniformLocation(shaderProgram, "type");
         GLES20.glUniform1i(typeHandle, type);
+        int texturePosHandle = GLES20.glGetUniformLocation(shaderProgram, "texture");
+        OpenGLUtil.bindTexture(texturePosHandle, cubeTexture, 0);
+
         Matrix.setIdentityM(modelMatrix, 0);
         Matrix.translateM(modelMatrix, 0, -1.0f, 0.0f, -1.0f);
         //Matrix.rotateM(modelMatrix, 0, angleInDegrees, 0.0f, 1.0f, 0.0f);
@@ -224,17 +236,7 @@ public class StencilTestingRenderer extends BaseRenderer {
         Matrix.multiplyMM(mMVPMatrix, 0, projectionMatrix, 0, mMVPMatrix, 0);
         GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, mMVPMatrix, 0);
 
-        int texturePosHandle = GLES20.glGetUniformLocation(shaderProgram, "texture");
-        OpenGLUtil.bindTexture(texturePosHandle, cubeTexture, 0);
-
         GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 36);
-
-        vertexBuffer.position(0);
-        GLES20.glVertexAttribPointer(positionHandle, 3, GLES20.GL_FLOAT,
-                false, 5 * 4, vertexBuffer);
-        vertexBuffer.position(3);
-        GLES20.glVertexAttribPointer(textHandle, 2, GLES20.GL_FLOAT,
-                false, 5 * 4, vertexBuffer);
 
         Matrix.setIdentityM(modelMatrix, 0);
         Matrix.translateM(modelMatrix, 0, 2.0f, 0.0f, 0.0f);
@@ -247,50 +249,107 @@ public class StencilTestingRenderer extends BaseRenderer {
         OpenGLUtil.bindTexture(texturePosHandle, cubeTexture, 0);
 
         GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 36);
-
 
         GLES20.glDisableVertexAttribArray(positionHandle);
         GLES20.glDisableVertexAttribArray(textHandle);
     }
 
-    private void drawScaleCube() {
-        int shaderProgram = OpenGLUtil.createProgram(singleColorVertex, singleColorFragment);
+    private void drawGrass() {
+        int shaderProgram = OpenGLUtil.createProgram(vertexShaderCode, fragmentShaderCode);
         GLES20.glUseProgram(shaderProgram);
+
         // 传入顶点坐标
         int positionHandle = GLES20.glGetAttribLocation(shaderProgram, "aPosition");
         GLES20.glEnableVertexAttribArray(positionHandle);
-        FloatBuffer vertexBuffer = OpenGLUtil.createFloatBuffer(cubeVertices);
+        FloatBuffer vertexBuffer = OpenGLUtil.createFloatBuffer(transparentVertices);
         GLES20.glVertexAttribPointer(positionHandle, 3, GLES20.GL_FLOAT,
                 false, 5 * 4, vertexBuffer);
-        float scale = 1.1f;
+        // 纹理坐标
+        int textHandle = GLES20.glGetAttribLocation(shaderProgram, "aTextCoords");
+        GLES20.glEnableVertexAttribArray(textHandle);
+        vertexBuffer.position(3);
+        GLES20.glVertexAttribPointer(textHandle, 2, GLES20.GL_FLOAT,
+                false, 5 * 4, vertexBuffer);
 
         int mMVPMatrixHandle = GLES20.glGetUniformLocation(shaderProgram, "uMVPMatrix");
-        Matrix.setIdentityM(modelMatrix, 0);
-        Matrix.translateM(modelMatrix, 0, -1.0f, 0.0f, -1.0f);
-        Matrix.scaleM(modelMatrix, 0, scale, scale, scale);
+        int typeHandle = GLES20.glGetUniformLocation(shaderProgram, "type");
+        GLES20.glUniform1i(typeHandle, type);
 
-        Matrix.multiplyMM(mMVPMatrix, 0, viewMatrix, 0, modelMatrix, 0);
-        Matrix.multiplyMM(mMVPMatrix, 0, projectionMatrix, 0, mMVPMatrix, 0);
-        GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, mMVPMatrix, 0);
+        int texturePosHandle = GLES20.glGetUniformLocation(shaderProgram, "texture");
+        OpenGLUtil.bindTexture(texturePosHandle, grassTexture, 0);
 
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 36);
+        for (float[] vegetation : translate) {
+            Matrix.setIdentityM(modelMatrix, 0);
+            Matrix.translateM(modelMatrix, 0, vegetation[0], vegetation[1], vegetation[2]);
+            //Matrix.rotateM(modelMatrix, 0, angleInDegrees, 0.0f, 1.0f, 0.0f);
 
-        vertexBuffer.position(0);
-        GLES20.glVertexAttribPointer(positionHandle, 3, GLES20.GL_FLOAT,
-                false, 5 * 4, vertexBuffer);
-
-        Matrix.setIdentityM(modelMatrix, 0);
-        Matrix.translateM(modelMatrix, 0, 2.0f, 0.0f, 0.0f);
-        Matrix.scaleM(modelMatrix, 0, scale, scale, scale);
-
-        Matrix.multiplyMM(mMVPMatrix, 0, viewMatrix, 0, modelMatrix, 0);
-        Matrix.multiplyMM(mMVPMatrix, 0, projectionMatrix, 0, mMVPMatrix, 0);
-        GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, mMVPMatrix, 0);
-
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 36);
+            Matrix.multiplyMM(mMVPMatrix, 0, viewMatrix, 0, modelMatrix, 0);
+            Matrix.multiplyMM(mMVPMatrix, 0, projectionMatrix, 0, mMVPMatrix, 0);
+            GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, mMVPMatrix, 0);
+            GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 6);
+        }
 
         GLES20.glDisableVertexAttribArray(positionHandle);
-
+        GLES20.glDisableVertexAttribArray(textHandle);
     }
 
+    private void drawWindow() {
+        int shaderProgram = OpenGLUtil.createProgram(vertexShaderCode, fragmentShaderCode);
+        GLES20.glUseProgram(shaderProgram);
+
+        // 传入顶点坐标
+        int positionHandle = GLES20.glGetAttribLocation(shaderProgram, "aPosition");
+        GLES20.glEnableVertexAttribArray(positionHandle);
+        FloatBuffer vertexBuffer = OpenGLUtil.createFloatBuffer(transparentVertices);
+        GLES20.glVertexAttribPointer(positionHandle, 3, GLES20.GL_FLOAT,
+                false, 5 * 4, vertexBuffer);
+        // 纹理坐标
+        int textHandle = GLES20.glGetAttribLocation(shaderProgram, "aTextCoords");
+        GLES20.glEnableVertexAttribArray(textHandle);
+        vertexBuffer.position(3);
+        GLES20.glVertexAttribPointer(textHandle, 2, GLES20.GL_FLOAT,
+                false, 5 * 4, vertexBuffer);
+
+        int mMVPMatrixHandle = GLES20.glGetUniformLocation(shaderProgram, "uMVPMatrix");
+        int typeHandle = GLES20.glGetUniformLocation(shaderProgram, "type");
+        GLES20.glUniform1i(typeHandle, type);
+
+        int texturePosHandle = GLES20.glGetUniformLocation(shaderProgram, "texture");
+        OpenGLUtil.bindTexture(texturePosHandle, windowTexture, 0);
+
+        Map<Float, float[]> map = new TreeMap<>(new Comparator<Float>() {
+            @Override
+            public int compare(Float o1, Float o2) {
+                switch (o1.compareTo(o2)){
+                    case 1:
+                        return -1;
+                    case -1:
+                        return 1;
+                    default:
+                        return 0;
+                }
+            }
+        });
+        for (float[] vegetation : translate) {
+            float result = (float) Math.sqrt((vegetation[0] - mViewPos[0]) * (vegetation[0] - mViewPos[0]) +
+                    (vegetation[1] - mViewPos[1]) * (vegetation[1] - mViewPos[1]) +
+                    (vegetation[2] - mViewPos[2]) * (vegetation[2] - mViewPos[2]));
+            map.put(result, vegetation);
+        }
+
+        for (Map.Entry<Float, float[]> entry : map.entrySet()) {
+            float[] vegetation = entry.getValue();
+            Matrix.setIdentityM(modelMatrix, 0);
+            Matrix.translateM(modelMatrix, 0, vegetation[0], vegetation[1], vegetation[2]);
+            //Matrix.rotateM(modelMatrix, 0, angleInDegrees, 0.0f, 1.0f, 0.0f);
+
+            Matrix.multiplyMM(mMVPMatrix, 0, viewMatrix, 0, modelMatrix, 0);
+            Matrix.multiplyMM(mMVPMatrix, 0, projectionMatrix, 0, mMVPMatrix, 0);
+            GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, mMVPMatrix, 0);
+            GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 6);
+        }
+
+        GLES20.glDisableVertexAttribArray(positionHandle);
+        GLES20.glDisableVertexAttribArray(textHandle);
+    }
 }
