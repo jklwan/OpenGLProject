@@ -219,6 +219,10 @@ public class FaceCullingRenderer extends BaseRenderer {
         GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, vPMatrix, 0);
         GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, cubeCoords.length / 3);
 
+        GLES20.glDisableVertexAttribArray(positionHandle);
+        GLES20.glDisableVertexAttribArray(colorHandle);
+
+        GLES20.glDeleteProgram(shaderProgram);
         angle += 2;
     }
 }
