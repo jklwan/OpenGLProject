@@ -303,9 +303,9 @@ public class OpenGLUtil {
             GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER,
                     GLES20.GL_LINEAR);
             GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S,
-                    withAlpha ? GLES20.GL_CLAMP_TO_EDGE :GLES20.GL_REPEAT);
+                    withAlpha ? GLES20.GL_CLAMP_TO_EDGE : GLES20.GL_REPEAT);
             GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T,
-                    withAlpha ? GLES20.GL_CLAMP_TO_EDGE :GLES20.GL_REPEAT);
+                    withAlpha ? GLES20.GL_CLAMP_TO_EDGE : GLES20.GL_REPEAT);
             //根据以上指定的参数，生成一个2D纹理
             GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
             return texture[0];
@@ -415,5 +415,44 @@ public class OpenGLUtil {
             e.printStackTrace();
         }
         return null;
+    }
+
+
+    /**
+     * 创建帧缓冲
+     * @param frameBuffer        frameBuffer
+     * @param frameBufferTexture frameBufferTexture
+     * @param width              width
+     * @param height             height
+     */
+    public static void createFrameBuffer(int[] frameBuffer, int[] frameBufferTexture,
+                                         int width, int height) {
+        if (frameBuffer == null || frameBufferTexture == null) return;
+        GLES20.glGenFramebuffers(frameBuffer.length, frameBuffer, 0);
+        GLES20.glGenTextures(frameBufferTexture.length, frameBufferTexture, 0);
+        int size = Math.min(frameBuffer.length, frameBufferTexture.length);
+        for (int i = 0; i < size; i++) {
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, frameBufferTexture[i]);
+            GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, width, height, 0,
+                    GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, null);
+            GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D,
+                    GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
+            GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D,
+                    GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
+            GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D,
+                    GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
+            GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D,
+                    GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
+            GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, frameBuffer[i]);
+            GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0,
+                    GLES20.GL_TEXTURE_2D, frameBufferTexture[i], 0);
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
+            GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
+
+            if (GLES20.glCheckFramebufferStatus(GLES20.GL_FRAMEBUFFER) != GLES20.GL_FRAMEBUFFER_COMPLETE) {
+                LogUtil.e("createFrameBuffer error");
+            }
+        }
+        checkGlError("createFrameBuffer");
     }
 }
