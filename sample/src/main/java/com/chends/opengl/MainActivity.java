@@ -18,7 +18,7 @@ import com.chends.opengl.utils.OpenGLUtil;
 import com.chends.opengl.view.advanced.opengl.BlendingView;
 import com.chends.opengl.view.advanced.opengl.DepthTestingFragment;
 import com.chends.opengl.view.advanced.opengl.FaceCullingView;
-import com.chends.opengl.view.advanced.opengl.FrameBuffersView;
+import com.chends.opengl.view.advanced.opengl.FrameBuffersFragment;
 import com.chends.opengl.view.advanced.opengl.StencilTestingView;
 import com.chends.opengl.view.light.LightCastersDirectionalView;
 import com.chends.opengl.view.light.LightCastersPointView;
@@ -162,7 +162,7 @@ public class MainActivity extends AppCompatActivity {
         aOpenGL.addItem(new MenuItemBean("模板测试", StencilTestingView.class));
         aOpenGL.addItem(new MenuItemBean("混合", BlendingView.class));
         aOpenGL.addItem(new MenuItemBean("面剔除", FaceCullingView.class));
-        aOpenGL.addItem(new MenuItemBean("帧缓冲", FrameBuffersView.class));
+        aOpenGL.addItem(new MenuItemBean("帧缓冲", FrameBuffersFragment.class));
         list.add(aOpenGL);
 
         menu1.setLayoutManager(new LinearLayoutManager(this));

@@ -155,6 +155,7 @@ public class FaceCullingRenderer extends BaseRenderer {
                         "void main() {" +
                         "  gl_FragColor = ourColor;" +
                         "}"; // 动态改变颜色
+
         for (int i = 0; i < indices.length; i++) {
             cubeCoords[i * 3] = mCoords[indices[i] * 3];
             cubeCoords[i * 3 + 1] = mCoords[indices[i] * 3 + 1];

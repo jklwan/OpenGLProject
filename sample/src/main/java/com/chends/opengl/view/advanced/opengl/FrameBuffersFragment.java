@@ -5,17 +5,17 @@ import android.view.View;
 import com.chends.opengl.view.BaseChangeFragment;
 
 /**
- * @author chends create on 2020/1/6.
+ * @author chends create on 2020/1/11.
  */
-public class DepthTestingFragment extends BaseChangeFragment {
+public class FrameBuffersFragment extends BaseChangeFragment {
 
     @Override
     protected View onChangeClick(int type) {
-        return new DepthTestingView(getContext(), type);
+        return new FrameBuffersView(getContext(), type);
     }
 
     @Override
     protected int getTypeMax() {
-        return 2;
+        return 6;
     }
 }

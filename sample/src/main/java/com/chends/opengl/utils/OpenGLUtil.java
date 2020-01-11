@@ -1,13 +1,14 @@
 package com.chends.opengl.utils;
 
-import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.opengl.GLES20;
+import android.opengl.GLES30;
 import android.opengl.GLSurfaceView;
 import android.opengl.GLUtils;
+import android.os.Build;
 import android.text.TextUtils;
 
 import com.chends.opengl.interfaces.BaseListener;
@@ -45,6 +46,25 @@ public class OpenGLUtil {
     public static final int GL_NOT_INIT = -1;
     // 没有Texture
     public static final int GL_NOT_TEXTURE = -1;
+    private static Integer OpenGLVersion = null;
+
+    public static void init(Context context) {
+        ActivityManager am = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+        if (am != null) {
+            int ver = am.getDeviceConfigurationInfo().reqGlEsVersion;
+            if (ver >= 0x30002) {
+                OpenGLVersion = 5;
+            } else if (ver >= 0x30001) {
+                OpenGLVersion = 4;
+            } else if (ver >= 0x30000) {
+                OpenGLVersion = 3;
+            } else if (ver >= 0x20000) {
+                OpenGLVersion = 2;
+            } else {
+                OpenGLVersion = 0;
+            }
+        }
+    }
 
     public static GLSurfaceView.EGLContextFactory createFactory() {
         return createFactory(null);
@@ -66,29 +86,36 @@ public class OpenGLUtil {
         @Override
         public EGLContext createContext(EGL10 egl, EGLDisplay display, EGLConfig eglConfig) {
             EGLContext context = null;
-            Integer version = null;
-            try {
-                context = egl.eglCreateContext(display, eglConfig, EGL10.EGL_NO_CONTEXT,
-                        new int[]{EGL_CONTEXT_CLIENT_VERSION, 3, EGL10.EGL_NONE});
-            } catch (Exception ex) {
-                LogUtil.e(ex);
-            }
-
-            if (context == null || context == EGL10.EGL_NO_CONTEXT) {
-                LogUtil.d("un support OpenGL ES 3.0 ");
+            int version;
+            while (true) {
+                if (OpenGLVersion == null) {
+                    version = 3;
+                } else {
+                    switch (OpenGLVersion) {
+                        case 5:
+                        case 4:
+                        case 3:
+                            version = 3;
+                            break;
+                        default:
+                            version = 2;
+                            break;
+                    }
+                }
                 try {
                     context = egl.eglCreateContext(display, eglConfig, EGL10.EGL_NO_CONTEXT,
-                            new int[]{EGL_CONTEXT_CLIENT_VERSION, 2, EGL10.EGL_NONE});
+                            new int[]{EGL_CONTEXT_CLIENT_VERSION, version, EGL10.EGL_NONE});
                 } catch (Exception ex) {
                     LogUtil.e(ex);
                 }
-            } else {
-                version = 3;
-            }
-            if (context == null || context == EGL10.EGL_NO_CONTEXT) {
-                LogUtil.d("un support OpenGL ES 2.0 ");
-            } else {
-                version = 2;
+                if (context == null || context == EGL10.EGL_NO_CONTEXT) {
+                    version--;
+                    if (version < 2) {
+                        break;
+                    }
+                } else {
+                    break;
+                }
             }
             if (listener != null) {
                 listener.onFinish(version);
@@ -104,24 +131,23 @@ public class OpenGLUtil {
         }
     }
 
-    public static boolean checkOpenGL(Activity activity, int version) {
-        ActivityManager am = (ActivityManager) activity.getSystemService(Context.ACTIVITY_SERVICE);
-        if (am != null) {
-            return am.getDeviceConfigurationInfo().reqGlEsVersion >= version;
+    public static boolean checkOpenGL(Context context, int version) {
+        if (OpenGLVersion == null) {
+            init(context);
         }
-        return false;
+        return OpenGLVersion >= version;
     }
 
-    public static boolean checkOpenGLES20(Activity activity) {
-        return checkOpenGL(activity, 0x20000);
+    public static boolean checkOpenGLES20(Context activity) {
+        return checkOpenGL(activity, 2);
     }
 
-    public static boolean checkOpenGLES30(Activity activity) {
-        return checkOpenGL(activity, 0x30000);
+    public static boolean checkOpenGLES30(Context activity) {
+        return checkOpenGL(activity, 3);
     }
 
-    public static boolean checkOpenGLES31(Activity activity) {
-        return checkOpenGL(activity, 0x30001);
+    public static boolean checkOpenGLES31(Context activity) {
+        return checkOpenGL(activity, 4);
     }
 
     /**
@@ -425,29 +451,50 @@ public class OpenGLUtil {
      * @param width              width
      * @param height             height
      */
-    public static void createFrameBuffer(int[] frameBuffer, int[] frameBufferTexture,
+    public static void createFrameBuffer(int[] frameBuffer, int[] frameBufferTexture, int[] renderBuffers,
                                          int width, int height) {
         if (frameBuffer == null || frameBufferTexture == null) return;
+        // 生成FrameBuffer
         GLES20.glGenFramebuffers(frameBuffer.length, frameBuffer, 0);
+        // 生成Texture
         GLES20.glGenTextures(frameBufferTexture.length, frameBufferTexture, 0);
+        // 生成RenderBuffers
+        GLES20.glGenRenderbuffers(renderBuffers.length, renderBuffers, 0);
+
         int size = Math.min(frameBuffer.length, frameBufferTexture.length);
         for (int i = 0; i < size; i++) {
+            GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, frameBuffer[i]);
+
             GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, frameBufferTexture[i]);
-            GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, width, height, 0,
-                    GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, null);
             GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D,
                     GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
             GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D,
-                    GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
+                    GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
             GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D,
                     GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
             GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D,
                     GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
-            GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, frameBuffer[i]);
+            GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, width, height, 0,
+                    GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, null);
+
+            if (OpenGLVersion > 2 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                GLES20.glBindRenderbuffer(GLES20.GL_RENDERBUFFER, renderBuffers[i]);
+                GLES20.glRenderbufferStorage(GLES20.GL_RENDERBUFFER, GLES30.GL_DEPTH24_STENCIL8, width, height);
+            } else {
+                GLES20.glBindRenderbuffer(GLES20.GL_RENDERBUFFER, renderBuffers[i]);
+                GLES20.glRenderbufferStorage(GLES20.GL_RENDERBUFFER, GLES20.GL_DEPTH_COMPONENT16, width, height);
+            }
+
             GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0,
                     GLES20.GL_TEXTURE_2D, frameBufferTexture[i], 0);
-            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
-            GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
+            if (OpenGLVersion > 2 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                GLES20.glFramebufferRenderbuffer(GLES20.GL_FRAMEBUFFER, GLES30.GL_DEPTH_STENCIL_ATTACHMENT, GLES20.GL_RENDERBUFFER, renderBuffers[i]);
+            } else {
+                GLES20.glFramebufferRenderbuffer(GLES20.GL_FRAMEBUFFER, GLES20.GL_DEPTH_ATTACHMENT, GLES20.GL_RENDERBUFFER, renderBuffers[i]);
+            }
+
+            //GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
+            //GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
 
             if (GLES20.glCheckFramebufferStatus(GLES20.GL_FRAMEBUFFER) != GLES20.GL_FRAMEBUFFER_COMPLETE) {
                 LogUtil.e("createFrameBuffer error");

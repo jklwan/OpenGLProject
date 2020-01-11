@@ -9,7 +9,7 @@ import com.chends.opengl.utils.OpenGLUtil;
 import com.chends.opengl.view.BaseGLView;
 
 /**
- *混合
+ * 混合
  * @author chends create on 2020/1/7.
  */
 public class BlendingView extends BaseGLView {

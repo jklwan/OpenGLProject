@@ -21,7 +21,7 @@ import javax.microedition.khronos.opengles.GL10;
  */
 public class FrameBuffersRenderer extends BaseRenderer {
 
-    private float[] mViewPos = new float[]{0f, 0f, 4.5f, 1f};
+    private float[] mViewPos = new float[]{0f, 0f, 3f, 1f};
 
     private float[] cubeVertices = {
             // positions          // texture Coords
@@ -88,26 +88,28 @@ public class FrameBuffersRenderer extends BaseRenderer {
             1.0f, 1.0f, 1.0f, 1.0f
     };
 
-    public FrameBuffersRenderer(Context context) {
+    public FrameBuffersRenderer(Context context, int type) {
         super(context);
+        this.type = type;
         vertexShaderCode = OpenGLUtil.getShaderFromResources(context, R.raw.texture_vertext);
         fragmentShaderCode = OpenGLUtil.getShaderFromResources(context, R.raw.texture_fragment);
         vertexFrameShader = OpenGLUtil.getShaderFromResources(context, R.raw.advanced_opengl_frame_buffers_vertext);
         fragmentFrameShader = OpenGLUtil.getShaderFromResources(context, R.raw.advanced_opengl_frame_buffers_fragment);
     }
 
+    private int type;
+
     private final float[] mMVPMatrix = new float[16], projectionMatrix = new float[16],
             viewMatrix = new float[16], modelMatrix = new float[16];
     private int cubeTexture, floorTexture;
-    private int[] frameBuffer=new int[1], frameBufferTexture = new int[1];
+    private int[] frameBuffer = new int[1], frameBufferTexture = new int[1], renderBuffer = new int[1];
     private String vertexFrameShader, fragmentFrameShader;
-
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         super.onSurfaceCreated(gl, config);
         Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(),
-                R.drawable.ic_depth_testing_marble);
+                R.drawable.ic_frame_buffers_container);
         Bitmap bitmap2 = BitmapFactory.decodeResource(context.getResources(),
                 R.drawable.ic_depth_testing_metal);
 
@@ -119,14 +121,11 @@ public class FrameBuffersRenderer extends BaseRenderer {
 
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
-
-        OpenGLUtil.createFrameBuffer(frameBuffer, frameBufferTexture, width, height);
+        super.onSurfaceChanged(gl, width, height);
+        OpenGLUtil.createFrameBuffer(frameBuffer, frameBufferTexture, renderBuffer, width, height);
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, frameBuffer[0]);
 
-        super.onSurfaceChanged(gl, width, height);
         float ratio = (float) width / height;
-
-        // 设置透视投影矩阵，近点是3，远点是7
         Matrix.frustumM(projectionMatrix, 0, -ratio, ratio, -1, 1, 1f, 10f);
         Matrix.setLookAtM(viewMatrix, 0, mViewPos[0], mViewPos[1], mViewPos[2],
                 0f, 0f, 0f,
@@ -137,9 +136,23 @@ public class FrameBuffersRenderer extends BaseRenderer {
     public void onDrawFrame(GL10 gl) {
         super.onDrawFrame(gl);
 
-        drawCube();
         drawFloor();
+        drawCube();
+
+        //GLES20.glViewport(0, 0, disWidth, disHeight);
+        // now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
+        GLES20.glDisable(GLES20.GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
+        // clear all relevant buffers
+        GLES20.glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // set clear color to white (not really necessery actually, since we won't be able to see behind the quad anyways)
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+        //GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
+
         drawFrameBuffers();
+
+        GLES20.glDeleteTextures(frameBufferTexture.length, frameBufferTexture, 0);
+        GLES20.glDeleteFramebuffers(frameBuffer.length, frameBuffer, 0);
+        GLES20.glDeleteRenderbuffers(renderBuffer.length, renderBuffer, 0);
     }
 
     private void drawCube() {
@@ -173,7 +186,7 @@ public class FrameBuffersRenderer extends BaseRenderer {
         GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 36);
 
         Matrix.setIdentityM(modelMatrix, 0);
-        Matrix.translateM(modelMatrix, 0, 2.0f, 0.0f, 0.0f);
+        Matrix.translateM(modelMatrix, 0, 1.0f, 0.0f, 0.0f);
         //Matrix.rotateM(modelMatrix, 0, angleInDegrees, 0.0f, 1.0f, 0.0f);
 
         Matrix.multiplyMM(mMVPMatrix, 0, viewMatrix, 0, modelMatrix, 0);
@@ -184,13 +197,13 @@ public class FrameBuffersRenderer extends BaseRenderer {
 
         GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 36);
 
-
         GLES20.glDisableVertexAttribArray(positionHandle);
         GLES20.glDisableVertexAttribArray(textHandle);
+        GLES20.glDeleteProgram(shaderProgram);
     }
 
     private void drawFloor() {
-        int shaderProgram = OpenGLUtil.createProgram(vertexFrameShader, fragmentFrameShader);
+        int shaderProgram = OpenGLUtil.createProgram(vertexShaderCode, fragmentShaderCode);
         GLES20.glUseProgram(shaderProgram);
         // 传入顶点坐标
         int positionHandle = GLES20.glGetAttribLocation(shaderProgram, "aPosition");
@@ -200,7 +213,7 @@ public class FrameBuffersRenderer extends BaseRenderer {
         GLES20.glEnableVertexAttribArray(textHandle);
 
         // 传入顶点坐标
-        FloatBuffer quadVertexBuffer = OpenGLUtil.createFloatBuffer(quadVertices);
+        FloatBuffer quadVertexBuffer = OpenGLUtil.createFloatBuffer(planeVertices);
         GLES20.glVertexAttribPointer(positionHandle, 3, GLES20.GL_FLOAT,
                 false, 5 * 4, quadVertexBuffer);
         // 纹理坐标
@@ -225,17 +238,11 @@ public class FrameBuffersRenderer extends BaseRenderer {
 
         GLES20.glDisableVertexAttribArray(positionHandle);
         GLES20.glDisableVertexAttribArray(textHandle);
+        GLES20.glDeleteProgram(shaderProgram);
     }
 
     private void drawFrameBuffers() {
-        // now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
-        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
-        GLES20.glDisable(GLES20.GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
-        // clear all relevant buffers
-        GLES20.glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // set clear color to white (not really necessery actually, since we won't be able to see behind the quad anyways)
-        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
-
-        int shaderProgram = OpenGLUtil.createProgram(vertexShaderCode, fragmentShaderCode);
+        int shaderProgram = OpenGLUtil.createProgram(vertexFrameShader, fragmentFrameShader);
         GLES20.glUseProgram(shaderProgram);
         // 传入顶点坐标
         int positionHandle = GLES20.glGetAttribLocation(shaderProgram, "aPosition");
@@ -245,22 +252,25 @@ public class FrameBuffersRenderer extends BaseRenderer {
         GLES20.glEnableVertexAttribArray(textHandle);
 
         // 传入顶点坐标
-        FloatBuffer planVertexBuffer = OpenGLUtil.createFloatBuffer(planeVertices);
-        GLES20.glVertexAttribPointer(positionHandle, 3, GLES20.GL_FLOAT,
-                false, 5 * 4, planVertexBuffer);
+        FloatBuffer quadVertexBuffer = OpenGLUtil.createFloatBuffer(quadVertices);
+        GLES20.glVertexAttribPointer(positionHandle, 2, GLES20.GL_FLOAT,
+                false, 4 * 4, quadVertexBuffer);
         // 纹理坐标
-        planVertexBuffer.position(3);
+        quadVertexBuffer.position(2);
         GLES20.glVertexAttribPointer(textHandle, 2, GLES20.GL_FLOAT,
-                false, 5 * 4, planVertexBuffer);
+                false, 4 * 4, quadVertexBuffer);
 
-        int mMVPMatrixHandle = GLES20.glGetUniformLocation(shaderProgram, "uMVPMatrix");
+        /*int mMVPMatrixHandle = GLES20.glGetUniformLocation(shaderProgram, "uMVPMatrix");
         Matrix.setIdentityM(modelMatrix, 0);
         //Matrix.translateM(modelMatrix, 0, 2.0f, 0.0f, -4.0f);
         //Matrix.rotateM(modelMatrix, 0, angleInDegrees, 0.0f, 1.0f, 0.0f);
 
         Matrix.multiplyMM(mMVPMatrix, 0, viewMatrix, 0, modelMatrix, 0);
         Matrix.multiplyMM(mMVPMatrix, 0, projectionMatrix, 0, mMVPMatrix, 0);
-        GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, mMVPMatrix, 0);
+        GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, mMVPMatrix, 0);*/
+
+        int typeHandle = GLES20.glGetUniformLocation(shaderProgram, "type");
+        GLES20.glUniform1i(typeHandle, type);
 
         int texturePosHandle = GLES20.glGetUniformLocation(shaderProgram, "texture");
         OpenGLUtil.bindTexture(texturePosHandle, frameBufferTexture[0], 0);
@@ -271,5 +281,6 @@ public class FrameBuffersRenderer extends BaseRenderer {
         GLES20.glDisableVertexAttribArray(positionHandle);
         GLES20.glDisableVertexAttribArray(textHandle);
 
+        GLES20.glDeleteProgram(shaderProgram);
     }
 }
