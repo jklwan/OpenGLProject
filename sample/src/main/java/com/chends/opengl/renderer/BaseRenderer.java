@@ -16,6 +16,7 @@ public class BaseRenderer implements GLSurfaceView.Renderer {
     protected String vertexShaderCode;
     protected String fragmentShaderCode;
     protected int bg = Color.BLACK;
+    protected int disWidth, disHeight;
     protected Context context;
     // 0 到1 代表 0- 256 如 181 用0.70703125f
     protected float[] color = {0.70703125f, 0.10546875f, 0.84375f, 1.0f};
@@ -60,14 +61,16 @@ public class BaseRenderer implements GLSurfaceView.Renderer {
 
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
-        // 设置显示范围
-        GLES20.glViewport(0, 0, width, height);
-        //GLES20.glEnable(GLES20.GL_CULL_FACE);
-        GLES20.glEnable(GLES20.GL_DEPTH_TEST);
+        disWidth = width;
+        disHeight = height;
     }
 
     @Override
     public void onDrawFrame(GL10 gl) {
+        // 设置显示范围
+        GLES20.glViewport(0, 0, disWidth, disHeight);
+        //GLES20.glEnable(GLES20.GL_CULL_FACE);
+        GLES20.glEnable(GLES20.GL_DEPTH_TEST);
         // 清屏
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
     }

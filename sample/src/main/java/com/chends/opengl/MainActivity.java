@@ -175,9 +175,9 @@ public class MainActivity extends AppCompatActivity {
     public void afterSelect(MenuItemBean item) {
         actionBar.setTitle(item.title);
         List<Fragment> list = getSupportFragmentManager().getFragments();
-        if (!list.isEmpty()){
+        if (!list.isEmpty()) {
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-            for (Fragment fragment : list){
+            for (Fragment fragment : list) {
                 transaction.remove(fragment);
             }
             transaction.commitNowAllowingStateLoss();
@@ -185,15 +185,18 @@ public class MainActivity extends AppCompatActivity {
             content.removeAllViews();
         }
         if (item.fCls == null) return;
-        try {
-            Constructor<?> viewCons = item.fCls.getConstructor(new Class[]{Context.class});
-            Object object = viewCons.newInstance(this);
-            if (object instanceof View) {
-                content.addView((View) object, new FrameLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        if (View.class.isAssignableFrom(item.fCls)) {
+            try {
+                Constructor<?> viewCons = item.fCls.getConstructor(new Class[]{Context.class});
+                Object object = viewCons.newInstance(this);
+                if (object instanceof View) {
+                    content.addView((View) object, new FrameLayout.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+                }
+            } catch (Exception e) {
+                LogUtil.e(e);
             }
-        } catch (Exception e) {
-            LogUtil.e(e);
+        } else if (Fragment.class.isAssignableFrom(item.fCls)) {
             try {
                 Constructor<?> fragmentCons = item.fCls.getConstructor(new Class[]{});
                 Object object = fragmentCons.newInstance();
@@ -204,7 +207,7 @@ public class MainActivity extends AppCompatActivity {
                             .commitNowAllowingStateLoss();
                 }
             } catch (Exception ex) {
-                LogUtil.e(e);
+                LogUtil.e(ex);
             }
         }
     }
