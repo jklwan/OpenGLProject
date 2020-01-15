@@ -1,5 +1,5 @@
 precision mediump float;
-varying vec2 TextCoord;
+varying vec2 TexCoord;
 varying vec3 fragPos;
 varying vec3 norm;
 varying mat3 aLightMatrix;
@@ -71,12 +71,12 @@ void main() {
 // 计算光照
 vec3 calcDirLight(DirLight light, vec3 viewDir) {
     // 环境光照
-    vec3 ambient = light.ambient* texture2D(material.diffuse, TextCoord).rgb;
+    vec3 ambient = light.ambient* texture2D(material.diffuse, TexCoord).rgb;
     // 漫反射光照
     // 归一化光源线
     vec3 lightDir = normalize(-(aLightMatrix *light.direction));
     float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = diff * light.diffuse * texture2D(material.diffuse, TextCoord).rgb;
+    vec3 diffuse = diff * light.diffuse * texture2D(material.diffuse, TexCoord).rgb;
 
     // 镜面光照
     vec3 reflectDir = reflect(-lightDir, norm);
@@ -84,7 +84,7 @@ vec3 calcDirLight(DirLight light, vec3 viewDir) {
     /*if (spec > 0.1){
         spec = 0.1;
     }*/
-    vec3 specular = spec * light.specular * texture2D(material.specular, TextCoord).rgb;
+    vec3 specular = spec * light.specular * texture2D(material.specular, TexCoord).rgb;
 
     // 结果
     return (ambient + diffuse + specular);
@@ -92,17 +92,17 @@ vec3 calcDirLight(DirLight light, vec3 viewDir) {
 // 计算点光源
 vec3 calcPointLight(PointLight light, vec3 viewDir){
     // 环境光照
-    vec3 ambient = light.ambient * texture2D(material.diffuse, TextCoord).rgb;
+    vec3 ambient = light.ambient * texture2D(material.diffuse, TexCoord).rgb;
     // 漫反射光照
     // 归一化光源线
     vec3 lightDir = normalize(light.position - fragPos);
     float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = light.diffuse * diff * texture2D(material.diffuse, TextCoord).rgb;
+    vec3 diffuse = light.diffuse * diff * texture2D(material.diffuse, TexCoord).rgb;
 
     // 镜面光照
     vec3 reflectDir = reflect(-lightDir, norm);
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
-    vec3 specular = (spec * light.specular) * texture2D(material.specular, TextCoord).rgb;
+    vec3 specular = (spec * light.specular) * texture2D(material.specular, TexCoord).rgb;
 
     // 衰减
     float distance = length(light.position - fragPos);
@@ -122,16 +122,16 @@ vec3 calcSpotLight(SpotLight light, vec3 viewDir){
     float intensity = clamp((theta - light.outerCutOff) / epsilon, 0.0, 1.0);
 
     // 环境光照
-    vec3 ambient = light.ambient * texture2D(material.diffuse, TextCoord).rgb;
+    vec3 ambient = light.ambient * texture2D(material.diffuse, TexCoord).rgb;
     // 漫反射光照
     // 归一化光源线
     float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = light.diffuse * diff * texture2D(material.diffuse, TextCoord).rgb;
+    vec3 diffuse = light.diffuse * diff * texture2D(material.diffuse, TexCoord).rgb;
 
     // 镜面光照
     vec3 reflectDir = reflect(-lightDir, norm);
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
-    vec3 specular = (spec * light.specular) * texture2D(material.specular, TextCoord).rgb;
+    vec3 specular = (spec * light.specular) * texture2D(material.specular, TexCoord).rgb;
 
     diffuse *= intensity;
     specular *= intensity;

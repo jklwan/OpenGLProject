@@ -172,7 +172,7 @@ public class BlendingRenderer extends BaseRenderer {
         int positionHandle = GLES20.glGetAttribLocation(shaderProgram, "aPosition");
         GLES20.glEnableVertexAttribArray(positionHandle);
         // 纹理坐标
-        int textHandle = GLES20.glGetAttribLocation(shaderProgram, "aTextCoords");
+        int textHandle = GLES20.glGetAttribLocation(shaderProgram, "aTexCoords");
         GLES20.glEnableVertexAttribArray(textHandle);
 
         // 传入顶点坐标
@@ -216,7 +216,7 @@ public class BlendingRenderer extends BaseRenderer {
         GLES20.glVertexAttribPointer(positionHandle, 3, GLES20.GL_FLOAT,
                 false, 5 * 4, vertexBuffer);
         // 纹理坐标
-        int textHandle = GLES20.glGetAttribLocation(shaderProgram, "aTextCoords");
+        int textHandle = GLES20.glGetAttribLocation(shaderProgram, "aTexCoords");
         GLES20.glEnableVertexAttribArray(textHandle);
         vertexBuffer.position(3);
         GLES20.glVertexAttribPointer(textHandle, 2, GLES20.GL_FLOAT,
@@ -265,7 +265,7 @@ public class BlendingRenderer extends BaseRenderer {
         GLES20.glVertexAttribPointer(positionHandle, 3, GLES20.GL_FLOAT,
                 false, 5 * 4, vertexBuffer);
         // 纹理坐标
-        int textHandle = GLES20.glGetAttribLocation(shaderProgram, "aTextCoords");
+        int textHandle = GLES20.glGetAttribLocation(shaderProgram, "aTexCoords");
         GLES20.glEnableVertexAttribArray(textHandle);
         vertexBuffer.position(3);
         GLES20.glVertexAttribPointer(textHandle, 2, GLES20.GL_FLOAT,
@@ -304,7 +304,7 @@ public class BlendingRenderer extends BaseRenderer {
         GLES20.glVertexAttribPointer(positionHandle, 3, GLES20.GL_FLOAT,
                 false, 5 * 4, vertexBuffer);
         // 纹理坐标
-        int textHandle = GLES20.glGetAttribLocation(shaderProgram, "aTextCoords");
+        int textHandle = GLES20.glGetAttribLocation(shaderProgram, "aTexCoords");
         GLES20.glEnableVertexAttribArray(textHandle);
         vertexBuffer.position(3);
         GLES20.glVertexAttribPointer(textHandle, 2, GLES20.GL_FLOAT,

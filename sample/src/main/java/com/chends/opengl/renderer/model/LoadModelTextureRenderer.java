@@ -105,13 +105,13 @@ public class LoadModelTextureRenderer extends BaseRenderer {
      */
     private void drawModel() {
         int shaderProgram = OpenGLUtil.createProgram(vertexShaderCode, fragmentShaderCode, new String[]{
-                "aPosition", "aNormal", "aTextCoords"});
+                "aPosition", "aNormal", "aTexCoords"});
         GLES20.glUseProgram(shaderProgram);
         // 顶点坐标
         int positionHandle = GLES20.glGetAttribLocation(shaderProgram, "aPosition");
         // 法向量
         int normalHandle = GLES20.glGetAttribLocation(shaderProgram, "aNormal");
-        int textHandle = GLES20.glGetAttribLocation(shaderProgram, "aTextCoords");
+        int textHandle = GLES20.glGetAttribLocation(shaderProgram, "aTexCoords");
 
         int mMVMatrixHandle = GLES20.glGetUniformLocation(shaderProgram, "uMVMatrix");
         int mMVPMatrixHandle = GLES20.glGetUniformLocation(shaderProgram, "uMVPMatrix");

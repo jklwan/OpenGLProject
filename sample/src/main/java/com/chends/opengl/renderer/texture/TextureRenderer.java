@@ -23,19 +23,19 @@ public class TextureRenderer extends BaseRenderer {
         super(context);
         vertexShaderCode =
                 "attribute vec4 aPos;" +
-                        "attribute vec2 aTextCoord;" +
-                        "varying vec2 TextCoord;" +
+                        "attribute vec2 aTexCoord;" +
+                        "varying vec2 TexCoord;" +
                         "void main() {" +
                         "  gl_Position = aPos;" +
-                        "  TextCoord = aTextCoord;" +
+                        "  TexCoord = aTexCoord;" +
                         "}";
 
         fragmentShaderCode =
                 "precision mediump float;" +
                         "uniform sampler2D ourTexture;" +
-                        "varying vec2 TextCoord;" +
+                        "varying vec2 TexCoord;" +
                         "void main() {" +
-                        "  gl_FragColor = texture2D(ourTexture, TextCoord);" +
+                        "  gl_FragColor = texture2D(ourTexture, TexCoord);" +
                         "}";
     }
 
@@ -76,7 +76,7 @@ public class TextureRenderer extends BaseRenderer {
                 false, 5 * 4, vertexBuffer);
 
         vertexBuffer.position(3);
-        int coordHandle = GLES20.glGetAttribLocation(shaderProgram, "aTextCoord");
+        int coordHandle = GLES20.glGetAttribLocation(shaderProgram, "aTexCoord");
         GLES20.glEnableVertexAttribArray(coordHandle);
         GLES20.glVertexAttribPointer(coordHandle, 2, GLES20.GL_FLOAT,
                 false, 5 * 4, vertexBuffer);

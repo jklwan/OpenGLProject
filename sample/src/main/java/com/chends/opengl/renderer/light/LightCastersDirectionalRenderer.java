@@ -131,7 +131,7 @@ public class LightCastersDirectionalRenderer extends BaseRenderer {
      */
     private void drawCube() {
         int shaderProgram = OpenGLUtil.createProgram(vertexShaderCode, fragmentShaderCode, new String[]{
-                "aPosition", "aNormal", "aTextCoords"});
+                "aPosition", "aNormal", "aTexCoords"});
         GLES20.glUseProgram(shaderProgram);
         // 传入顶点坐标
         int positionHandle = GLES20.glGetAttribLocation(shaderProgram, "aPosition");
@@ -146,7 +146,7 @@ public class LightCastersDirectionalRenderer extends BaseRenderer {
         GLES20.glVertexAttribPointer(normalHandle, 3, GLES20.GL_FLOAT,
                 false, 8 * 4, vertexBuffer);
         // 纹理坐标
-        int textHandle = GLES20.glGetAttribLocation(shaderProgram, "aTextCoords");
+        int textHandle = GLES20.glGetAttribLocation(shaderProgram, "aTexCoords");
         GLES20.glEnableVertexAttribArray(textHandle);
         vertexBuffer.position(6);
         GLES20.glVertexAttribPointer(textHandle, 2, GLES20.GL_FLOAT,

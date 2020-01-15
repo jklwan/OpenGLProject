@@ -123,8 +123,6 @@ public class FrameBuffersRenderer extends BaseRenderer {
 
         textureRenderer = new TextureRenderer();
         frameRenderer = new FrameRenderer();
-        textureRenderer.onCreate();
-        frameRenderer.onCreate();
     }
 
     @Override
@@ -182,12 +180,12 @@ public class FrameBuffersRenderer extends BaseRenderer {
     }
 
     private class TextureRenderer {
-        private int shaderProgram, positionHandle, textCoordsHandle, mMVPMatrixHandle, texturePosHandle;
+        private int shaderProgram, positionHandle, TexCoordsHandle, mMVPMatrixHandle, texturePosHandle;
 
-        public void onCreate() {
+        public TextureRenderer() {
             shaderProgram = OpenGLUtil.createProgram(vertexShaderCode, fragmentShaderCode);
             positionHandle = GLES20.glGetAttribLocation(shaderProgram, "aPosition");
-            textCoordsHandle = GLES20.glGetAttribLocation(shaderProgram, "aTextCoords");
+            TexCoordsHandle = GLES20.glGetAttribLocation(shaderProgram, "aTexCoords");
             mMVPMatrixHandle = GLES20.glGetUniformLocation(shaderProgram, "uMVPMatrix");
             texturePosHandle = GLES20.glGetUniformLocation(shaderProgram, "texture");
         }
@@ -195,25 +193,25 @@ public class FrameBuffersRenderer extends BaseRenderer {
         public void start() {
             GLES20.glUseProgram(shaderProgram);
             GLES20.glEnableVertexAttribArray(positionHandle);
-            GLES20.glEnableVertexAttribArray(textCoordsHandle);
+            GLES20.glEnableVertexAttribArray(TexCoordsHandle);
         }
 
         public void end() {
             GLES20.glDisableVertexAttribArray(positionHandle);
-            GLES20.glDisableVertexAttribArray(textCoordsHandle);
+            GLES20.glDisableVertexAttribArray(TexCoordsHandle);
             GLES20.glUseProgram(0);
         }
     }
 
     private class FrameRenderer {
-        private int shaderProgram, positionHandle, textCoordsHandle, typeHandle, texturePosHandle,
+        private int shaderProgram, positionHandle, TexCoordsHandle, typeHandle, texturePosHandle,
                 kernelHandle, offsetsHandle;
         private float[] kernel, offsets;
 
-        public void onCreate() {
+        public FrameRenderer() {
             shaderProgram = OpenGLUtil.createProgram(vertexFrameShader, fragmentFrameShader);
             positionHandle = GLES20.glGetAttribLocation(shaderProgram, "aPosition");
-            textCoordsHandle = GLES20.glGetAttribLocation(shaderProgram, "aTextCoords");
+            TexCoordsHandle = GLES20.glGetAttribLocation(shaderProgram, "aTexCoords");
             typeHandle = GLES20.glGetUniformLocation(shaderProgram, "type");
             texturePosHandle = GLES20.glGetUniformLocation(shaderProgram, "texture");
             kernelHandle = GLES20.glGetUniformLocation(shaderProgram, "kernel");
@@ -262,12 +260,12 @@ public class FrameBuffersRenderer extends BaseRenderer {
         public void start() {
             GLES20.glUseProgram(shaderProgram);
             GLES20.glEnableVertexAttribArray(positionHandle);
-            GLES20.glEnableVertexAttribArray(textCoordsHandle);
+            GLES20.glEnableVertexAttribArray(TexCoordsHandle);
         }
 
         public void end() {
             GLES20.glDisableVertexAttribArray(positionHandle);
-            GLES20.glDisableVertexAttribArray(textCoordsHandle);
+            GLES20.glDisableVertexAttribArray(TexCoordsHandle);
 
 
             GLES20.glBindTexture(frameBufferTexture, 0);
@@ -284,7 +282,7 @@ public class FrameBuffersRenderer extends BaseRenderer {
                 false, 5 * 4, quadVertexBuffer);
         // 纹理坐标
         quadVertexBuffer.position(3);
-        GLES20.glVertexAttribPointer(textureRenderer.textCoordsHandle, 2, GLES20.GL_FLOAT,
+        GLES20.glVertexAttribPointer(textureRenderer.TexCoordsHandle, 2, GLES20.GL_FLOAT,
                 false, 5 * 4, quadVertexBuffer);
 
         Matrix.setIdentityM(modelMatrix, 0);
@@ -308,7 +306,7 @@ public class FrameBuffersRenderer extends BaseRenderer {
         GLES20.glVertexAttribPointer(textureRenderer.positionHandle, 3, GLES20.GL_FLOAT,
                 false, 5 * 4, vertexBuffer);
         vertexBuffer.position(3);
-        GLES20.glVertexAttribPointer(textureRenderer.textCoordsHandle, 2, GLES20.GL_FLOAT,
+        GLES20.glVertexAttribPointer(textureRenderer.TexCoordsHandle, 2, GLES20.GL_FLOAT,
                 false, 5 * 4, vertexBuffer);
 
         Matrix.setIdentityM(modelMatrix, 0);
@@ -342,7 +340,7 @@ public class FrameBuffersRenderer extends BaseRenderer {
         GLES20.glVertexAttribPointer(frameRenderer.positionHandle, 2, GLES20.GL_FLOAT,
                 false, 4 * 4, quadVertexBuffer);
         quadVertexBuffer.position(2);
-        GLES20.glVertexAttribPointer(frameRenderer.textCoordsHandle, 2, GLES20.GL_FLOAT,
+        GLES20.glVertexAttribPointer(frameRenderer.TexCoordsHandle, 2, GLES20.GL_FLOAT,
                 false, 4 * 4, quadVertexBuffer);
 
         GLES20.glUniform1i(frameRenderer.typeHandle, type);

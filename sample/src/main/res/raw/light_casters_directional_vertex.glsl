@@ -6,18 +6,18 @@ uniform mat4 lightMatrix;
 attribute vec4 aPosition;
 // 法向量
 attribute vec3 aNormal;
-attribute vec2 aTextCoords;
+attribute vec2 aTexCoords;
 
 varying vec3 fragPos;
 varying vec3 norm;
-varying vec2 TextCoord;
+varying vec2 TexCoord;
 varying vec3 lightDirection;
 varying mat3 aLightMatrix;
 
 void main() {
     fragPos = vec3(uMVMatrix * aPosition);
     norm = normalize(mat3(normalMatrix) * aNormal);
-    TextCoord = aTextCoords;
+    TexCoord = aTexCoords;
     aLightMatrix = mat3(lightMatrix);
     gl_Position = uMVPMatrix * aPosition;
 }

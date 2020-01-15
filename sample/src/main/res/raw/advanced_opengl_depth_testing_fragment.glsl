@@ -1,6 +1,6 @@
 precision mediump float;
 uniform sampler2D texture;
-varying vec2 TextCoord;
+varying vec2 TexCoord;
 uniform int type;
 float near = 0.1;
 float far = 100.0;
@@ -12,7 +12,7 @@ void main() {
         float depth = LinearizeDepth(gl_FragCoord.z) / far;
         gl_FragColor = vec4(vec3(depth), 1.0);
     } else {
-        gl_FragColor = texture2D(texture, TextCoord);
+        gl_FragColor = texture2D(texture, TexCoord);
     }
 }
 

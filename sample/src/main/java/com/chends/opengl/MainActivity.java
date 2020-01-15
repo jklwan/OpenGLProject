@@ -1,6 +1,7 @@
 package com.chends.opengl;
 
 import android.content.Context;
+import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -16,6 +17,7 @@ import com.chends.opengl.utils.DisplayUtil;
 import com.chends.opengl.utils.LogUtil;
 import com.chends.opengl.utils.OpenGLUtil;
 import com.chends.opengl.view.advanced.opengl.BlendingView;
+import com.chends.opengl.view.advanced.opengl.CubeMapsView;
 import com.chends.opengl.view.advanced.opengl.DepthTestingFragment;
 import com.chends.opengl.view.advanced.opengl.FaceCullingView;
 import com.chends.opengl.view.advanced.opengl.FrameBuffersFragment;
@@ -66,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
     private ActionBar actionBar;
     private RecyclerView menu1, menu2;
     private SubAdapter subAdapter;
+    private GLSurfaceView currentView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -163,6 +166,7 @@ public class MainActivity extends AppCompatActivity {
         aOpenGL.addItem(new MenuItemBean("混合", BlendingView.class));
         aOpenGL.addItem(new MenuItemBean("面剔除", FaceCullingView.class));
         aOpenGL.addItem(new MenuItemBean("帧缓冲", FrameBuffersFragment.class));
+        aOpenGL.addItem(new MenuItemBean("立方体贴图", CubeMapsView.class));
         list.add(aOpenGL);
 
         menu1.setLayoutManager(new LinearLayoutManager(this));
@@ -184,6 +188,7 @@ public class MainActivity extends AppCompatActivity {
         } else {
             content.removeAllViews();
         }
+        currentView = null;
         if (item.fCls == null) return;
         if (View.class.isAssignableFrom(item.fCls)) {
             try {
@@ -192,6 +197,10 @@ public class MainActivity extends AppCompatActivity {
                 if (object instanceof View) {
                     content.addView((View) object, new FrameLayout.LayoutParams(
                             ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+                    if (object instanceof GLSurfaceView) {
+                        currentView = (GLSurfaceView) object;
+                        currentView.onResume();
+                    }
                 }
             } catch (Exception e) {
                 LogUtil.e(e);
@@ -209,6 +218,22 @@ public class MainActivity extends AppCompatActivity {
             } catch (Exception ex) {
                 LogUtil.e(ex);
             }
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (currentView != null) {
+            currentView.onResume();
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (currentView != null) {
+            currentView.onPause();
         }
     }
 

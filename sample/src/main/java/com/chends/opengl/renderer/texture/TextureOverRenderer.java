@@ -25,27 +25,27 @@ public class TextureOverRenderer extends BaseRenderer {
         vertexShaderCode =
                 "uniform mat4 uMVPMatrix;" +
                         "attribute vec4 aPos;" +
-                        "attribute vec2 aTextCoord1;" +
-                        "attribute vec2 aTextCoord2;" +
-                        "varying vec2 TextCoord1;" +
-                        "varying vec2 TextCoord2;" +
+                        "attribute vec2 aTexCoord1;" +
+                        "attribute vec2 aTexCoord2;" +
+                        "varying vec2 TexCoord1;" +
+                        "varying vec2 TexCoord2;" +
                         "attribute vec3 aColor;" +
                         "varying vec3 ourColor;" +
                         "void main() {" +
                         "  gl_Position = uMVPMatrix * aPos;" +
                         "  ourColor = aColor;" +
-                        "  TextCoord1 = aTextCoord1;" +
-                        "  TextCoord2 = aTextCoord2;" +
+                        "  TexCoord1 = aTexCoord1;" +
+                        "  TexCoord2 = aTexCoord2;" +
                         "}";
 
         fragmentShaderCode =
                 "precision mediump float;" +
                         "uniform sampler2D texture1;" +
                         "uniform sampler2D texture2;" +
-                        "varying vec2 TextCoord1;" +
-                        "varying vec2 TextCoord2;" +
+                        "varying vec2 TexCoord1;" +
+                        "varying vec2 TexCoord2;" +
                         "void main() {" +
-                        "  gl_FragColor = mix(texture2D(texture1, TextCoord1),texture2D(texture2, TextCoord2),0.5);" +
+                        "  gl_FragColor = mix(texture2D(texture1, TexCoord1),texture2D(texture2, TexCoord2),0.5);" +
                         "}";
     }
 
@@ -132,13 +132,13 @@ public class TextureOverRenderer extends BaseRenderer {
 
         vertexBuffer.position(3);
         // 第一个纹理坐标
-        int coordHandle1 = GLES20.glGetAttribLocation(shaderProgram, "aTextCoord1");
+        int coordHandle1 = GLES20.glGetAttribLocation(shaderProgram, "aTexCoord1");
         GLES20.glEnableVertexAttribArray(coordHandle1);
         GLES20.glVertexAttribPointer(coordHandle1, 2, GLES20.GL_FLOAT,
                 false, 5 * 4, vertexBuffer);
         // 第二个纹理坐标
         FloatBuffer coordBuffer = OpenGLUtil.createFloatBuffer(texture2Array);
-        int coordHandle2 = GLES20.glGetAttribLocation(shaderProgram, "aTextCoord2");
+        int coordHandle2 = GLES20.glGetAttribLocation(shaderProgram, "aTexCoord2");
         GLES20.glEnableVertexAttribArray(coordHandle2);
         GLES20.glVertexAttribPointer(coordHandle2, 2, GLES20.GL_FLOAT,
                 false, 2 * 4, coordBuffer);

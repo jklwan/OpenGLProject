@@ -1,8 +1,8 @@
 uniform mat4 uMVPMatrix;
 attribute vec4 aPosition;
-attribute vec2 aTextCoords;
-varying vec2 TextCoord;
+attribute vec2 aTexCoords;
+varying vec2 TexCoord;
 void main() {
     gl_Position = uMVPMatrix * aPosition;
-    TextCoord = aTextCoords;
+    TexCoord = aTexCoords;
 }

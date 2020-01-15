@@ -1,9 +1,9 @@
 precision mediump float;
 uniform sampler2D texture;
-varying vec2 TextCoord;
+varying vec2 TexCoord;
 uniform int type;
 void main() {
-    vec4 texColor = texture2D(texture, TextCoord);
+    vec4 texColor = texture2D(texture, TexCoord);
     if (type == 1){
         if (texColor.a < 0.1){
             discard;

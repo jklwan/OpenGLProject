@@ -163,7 +163,7 @@ public class LightCastersSpotLightRenderer extends BaseRenderer {
         GLES20.glVertexAttribPointer(normalHandle, 3, GLES20.GL_FLOAT,
                 false, 8 * 4, vertexBuffer);
         // 纹理坐标
-        int textHandle = GLES20.glGetAttribLocation(shaderProgram, "aTextCoords");
+        int textHandle = GLES20.glGetAttribLocation(shaderProgram, "aTexCoords");
         GLES20.glEnableVertexAttribArray(textHandle);
         vertexBuffer.position(6);
         GLES20.glVertexAttribPointer(textHandle, 2, GLES20.GL_FLOAT,

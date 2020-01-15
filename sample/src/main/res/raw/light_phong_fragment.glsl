@@ -1,5 +1,5 @@
 precision mediump float;
-varying vec2 TextCoord;
+varying vec2 TexCoord;
 varying vec3 fragPos;
 varying vec3 norm;
 uniform vec3 aLightPos;
