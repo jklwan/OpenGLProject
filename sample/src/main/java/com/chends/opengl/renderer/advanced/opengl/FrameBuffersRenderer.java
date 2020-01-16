@@ -127,8 +127,7 @@ public class FrameBuffersRenderer extends BaseRenderer {
 
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
-        disWidth = width;
-        disHeight = height;
+        super.onSurfaceChanged(gl, width, height);
         float ratio = (float) width / height;
         Matrix.frustumM(projectionMatrix, 0, -ratio, ratio, -1, 1, 1f, 10f);
         Matrix.setLookAtM(viewMatrix, 0, mViewPos[0], mViewPos[1], mViewPos[2],
@@ -160,7 +159,7 @@ public class FrameBuffersRenderer extends BaseRenderer {
         release();
     }
 
-    private void release(){
+    private void release() {
         int[] values = new int[1];
         if (frameBufferTexture > 0) {
             values[0] = frameBufferTexture;

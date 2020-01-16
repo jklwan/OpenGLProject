@@ -32,7 +32,7 @@ public class TriangleMatrixRenderer extends BaseRenderer {
     }
 
     private final float[] projectionMatrix = new float[16], rotationMatrix = new float[16],
-            translateMatrix = new float[16], tempMatrix = new float[16], vPMatrix = new float[16];
+            translateMatrix = new float[16], viewMatrix = new float[16], MVPMatrix = new float[16];
 
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
@@ -51,6 +51,12 @@ public class TriangleMatrixRenderer extends BaseRenderer {
             Matrix.scaleM(projectionMatrix, 0, 1, 1 / aspectRatio, 1);
             //Matrix.orthoM(mProjectionMatrix, 0, -1f, 1f, -aspectRatio, aspectRatio, -1f, 1f);
         }
+        float ratio = (float) width / height;
+        Matrix.frustumM(projectionMatrix, 0, -ratio, ratio, -1, 1, 1f, 1000f);
+        Matrix.setLookAtM(viewMatrix, 0,
+                0, 0, 3,
+                0, 0, 0,
+                0, 1, 0);
     }
 
     @Override
@@ -80,12 +86,12 @@ public class TriangleMatrixRenderer extends BaseRenderer {
         float translate = (SystemClock.uptimeMillis() % 4000f) / 2000f;
         Matrix.translateM(translateMatrix, 0, translate <= 1 ? (translate - 0.5f) : (1 - (translate - 0.5f)), 0, 0);
         // 计算
-        Matrix.multiplyMM(tempMatrix, 0, projectionMatrix, 0, translateMatrix, 0);
+        Matrix.multiplyMM(MVPMatrix, 0, viewMatrix, 0, translateMatrix, 0);
         // 计算
-        Matrix.multiplyMM(vPMatrix, 0, tempMatrix, 0, rotationMatrix, 0);
+        Matrix.multiplyMM(MVPMatrix, 0, projectionMatrix, 0, MVPMatrix, 0);
 
         // 将视图转换传递给着色器
-        GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, vPMatrix, 0);
+        GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, MVPMatrix, 0);
 
         GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 3);
         GLES20.glDisableVertexAttribArray(positionHandle);

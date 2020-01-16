@@ -22,7 +22,7 @@ import javax.microedition.khronos.opengles.GL10;
  */
 public class CubeMapsRenderer extends BaseRenderer {
     private float[] cubeVertices = {
-            // Positions          // Texture Coords
+            // positions          // texture Coords
             -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
             0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
             0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
@@ -63,7 +63,8 @@ public class CubeMapsRenderer extends BaseRenderer {
             0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
             0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
             -0.5f, 0.5f, 0.5f, 0.0f, 0.0f,
-            -0.5f, 0.5f, -0.5f, 0.0f, 1.0f};
+            -0.5f, 0.5f, -0.5f, 0.0f, 1.0f
+    };
 
     /**
      * 立方体的8个顶点
@@ -189,7 +190,7 @@ public class CubeMapsRenderer extends BaseRenderer {
         super.onSurfaceChanged(gl, width, height);
 
         float ratio = (float) width / height;
-        Matrix.frustumM(projectionMatrix, 0, -ratio, ratio, -1, 1, 1f, 100f);
+        Matrix.frustumM(projectionMatrix, 0, -ratio, ratio, -1, 1, 1f, 1000f);
         Matrix.setLookAtM(viewMatrix, 0,
                 0, 0, 0,
                 0, 0, -1f,
@@ -245,9 +246,9 @@ public class CubeMapsRenderer extends BaseRenderer {
                 false, 5 * 4, vertexBuffer);
 
         Matrix.setIdentityM(modelMatrix, 0);
-        //Matrix.translateM(modelMatrix, 0, 0f, 0.0f, -1f);
-        //Matrix.scaleM(modelMatrix, 0, 0.5f, 0.5f, 0.5f);
-        //Matrix.rotateM(modelMatrix, 0, angleInDegrees, 0.0f, 1.0f, 0.0f);
+        Matrix.translateM(modelMatrix, 0, 0.5f, 0.5f, -2f);
+        Matrix.scaleM(modelMatrix, 0, 0.5f, 0.5f, 0.5f);
+        //Matrix.rotateM(modelMatrix, 0, 45, 1.0f, 0f, 0f);
 
         Matrix.multiplyMM(mMVPMatrix, 0, viewMatrix, 0, modelMatrix, 0);
 

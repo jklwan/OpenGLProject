@@ -1,7 +1,6 @@
 package com.chends.opengl.view.window;
 
 import android.content.Context;
-import android.opengl.GLSurfaceView;
 
 import com.chends.opengl.renderer.window.TriangleMatrixRenderer;
 import com.chends.opengl.utils.OpenGLUtil;
@@ -20,6 +19,6 @@ public class TriangleMatrixView extends BaseGLView {
     protected void init() {
         setEGLContextFactory(OpenGLUtil.createFactory());
         setRenderer(new TriangleMatrixRenderer());
-        setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
+        //setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
     }
 }
