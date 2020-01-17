@@ -17,6 +17,7 @@ import com.chends.opengl.utils.DisplayUtil;
 import com.chends.opengl.utils.LogUtil;
 import com.chends.opengl.utils.OpenGLUtil;
 import com.chends.opengl.view.advanced.opengl.BlendingView;
+import com.chends.opengl.view.advanced.opengl.CubeMapsEnvironmentView;
 import com.chends.opengl.view.advanced.opengl.CubeMapsView;
 import com.chends.opengl.view.advanced.opengl.DepthTestingFragment;
 import com.chends.opengl.view.advanced.opengl.FaceCullingView;
@@ -167,6 +168,7 @@ public class MainActivity extends AppCompatActivity {
         aOpenGL.addItem(new MenuItemBean("面剔除", FaceCullingView.class));
         aOpenGL.addItem(new MenuItemBean("帧缓冲", FrameBuffersFragment.class));
         aOpenGL.addItem(new MenuItemBean("立方体贴图", CubeMapsView.class));
+        aOpenGL.addItem(new MenuItemBean("环境映射", CubeMapsEnvironmentView.class));
         list.add(aOpenGL);
 
         menu1.setLayoutManager(new LinearLayoutManager(this));

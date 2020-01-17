@@ -1,11 +1,10 @@
 package com.chends.opengl.renderer.advanced.opengl;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.opengl.GLES20;
 import android.opengl.GLES30;
 import android.opengl.Matrix;
+import android.renderscript.Matrix4f;
 
 import com.chends.opengl.R;
 import com.chends.opengl.renderer.BaseRenderer;
@@ -17,53 +16,53 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 /**
- * 立方体贴图
+ * 立方体贴图 环境效果
  * @author chends create on 2020/1/15.
  */
-public class CubeMapsRenderer extends BaseRenderer {
+public class CubeMapsEnvironmentRenderer extends BaseRenderer {
     private float[] cubeVertices = {
-            // positions          // texture Coords
-            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
-            0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
-            0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-            0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-            -0.5f, 0.5f, -0.5f, 0.0f, 1.0f,
-            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
+            // positions          // normals
+            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
+            0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
+            0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
+            0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
+            -0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
+            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
 
-            -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
-            0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
-            0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
-            0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
-            -0.5f, 0.5f, 0.5f, 0.0f, 1.0f,
-            -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+            -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+            0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+            0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+            0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+            -0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+            -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
 
-            -0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-            -0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-            -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
-            -0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+            -0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f,
+            -0.5f, 0.5f, -0.5f, -1.0f, 0.0f, 0.0f,
+            -0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f,
+            -0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f,
+            -0.5f, -0.5f, 0.5f, -1.0f, 0.0f, 0.0f,
+            -0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f,
 
-            0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-            0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-            0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-            0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-            0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
-            0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+            0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
+            0.5f, 0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
+            0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
+            0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
+            0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
+            0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
 
-            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-            0.5f, -0.5f, -0.5f, 1.0f, 1.0f,
-            0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
-            0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
-            -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
-            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+            -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f,
+            0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f,
+            0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f,
+            0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f,
+            -0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f,
+            -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f,
 
-            -0.5f, 0.5f, -0.5f, 0.0f, 1.0f,
-            0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-            0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-            0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-            -0.5f, 0.5f, 0.5f, 0.0f, 0.0f,
-            -0.5f, 0.5f, -0.5f, 0.0f, 1.0f
+            -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+            0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+            0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
+            0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
+            -0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
+            -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f
     };
 
     /**
@@ -111,18 +110,20 @@ public class CubeMapsRenderer extends BaseRenderer {
     private final float[] mMVPMatrix = new float[16], projectionMatrix = new float[16],
             viewMatrix = new float[16], modelMatrix = new float[16];
     private float[] rotationMatrix = new float[16];
-    private int cubeTexture, skyboxTexture;
+    private int skyboxTexture;
     private SkyBoxRenderer skyBoxRenderer;
     private TextureRenderer textureRenderer;
 
-    public CubeMapsRenderer(Context context) {
+    private int type;
+
+    public CubeMapsEnvironmentRenderer(Context context) {
         super(context);
-        vertexShaderCode = OpenGLUtil.getShaderFromResources(context, R.raw.texture_vertext);
-        fragmentShaderCode = OpenGLUtil.getShaderFromResources(context, R.raw.texture_fragment);
+        vertexShaderCode = OpenGLUtil.getShaderFromResources(context, R.raw.advanced_opengl_cube_maps_environment_vertext);
+        fragmentShaderCode = OpenGLUtil.getShaderFromResources(context, R.raw.advanced_opengl_cube_maps_environment_fragment);
         skyboxVertexShader = OpenGLUtil.getShaderFromResources(context, R.raw.advanced_opengl_cube_maps_vertext);
         skyboxFragmentShader = OpenGLUtil.getShaderFromResources(context, R.raw.advanced_opengl_cube_maps_fragment);
 
-        Matrix.setIdentityM(rotationMatrix,0);
+        Matrix.setIdentityM(rotationMatrix, 0);
     }
 
     private class SkyBoxRenderer {
@@ -147,25 +148,29 @@ public class CubeMapsRenderer extends BaseRenderer {
     }
 
     private class TextureRenderer {
-        private int shaderProgram, positionHandle, TexCoordsHandle, mMVPMatrixHandle, texturePosHandle;
+        private int shaderProgram, positionHandle, normalHandle, mMVPMatrixHandle, modelMatrixHandle,
+                normalMatrixHandle, cameraPosHandle, skyBoxPosHandle;
 
         public TextureRenderer() {
             shaderProgram = OpenGLUtil.createProgram(vertexShaderCode, fragmentShaderCode);
             positionHandle = GLES20.glGetAttribLocation(shaderProgram, "aPosition");
-            TexCoordsHandle = GLES20.glGetAttribLocation(shaderProgram, "aTexCoords");
+            normalHandle = GLES20.glGetAttribLocation(shaderProgram, "aNormal");
             mMVPMatrixHandle = GLES20.glGetUniformLocation(shaderProgram, "uMVPMatrix");
-            texturePosHandle = GLES20.glGetUniformLocation(shaderProgram, "texture");
+            modelMatrixHandle = GLES20.glGetUniformLocation(shaderProgram, "modelMatrix");
+            normalMatrixHandle = GLES20.glGetUniformLocation(shaderProgram, "normalMatrix");
+            cameraPosHandle = GLES20.glGetUniformLocation(shaderProgram, "cameraPos");
+            skyBoxPosHandle = GLES20.glGetUniformLocation(shaderProgram, "skybox");
         }
 
         public void start() {
             GLES20.glUseProgram(shaderProgram);
             GLES20.glEnableVertexAttribArray(positionHandle);
-            GLES20.glEnableVertexAttribArray(TexCoordsHandle);
+            GLES20.glEnableVertexAttribArray(normalHandle);
         }
 
         public void end() {
             GLES20.glDisableVertexAttribArray(positionHandle);
-            GLES20.glDisableVertexAttribArray(TexCoordsHandle);
+            GLES20.glDisableVertexAttribArray(normalHandle);
             GLES20.glUseProgram(0);
         }
     }
@@ -173,11 +178,6 @@ public class CubeMapsRenderer extends BaseRenderer {
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         super.onSurfaceCreated(gl, config);
-        Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(),
-                R.drawable.ic_frame_buffers_container);
-
-        cubeTexture = OpenGLUtil.createTextureNormal(bitmap);
-        bitmap.recycle();
 
         skyboxTexture = OpenGLUtil.createTextureCube(context, new int[]{
                 R.drawable.ic_cube_maps_right, R.drawable.ic_cube_maps_left, R.drawable.ic_cube_maps_top,
@@ -242,22 +242,33 @@ public class CubeMapsRenderer extends BaseRenderer {
         textureRenderer.start();
         FloatBuffer vertexBuffer = OpenGLUtil.createFloatBuffer(cubeVertices);
         GLES20.glVertexAttribPointer(textureRenderer.positionHandle, 3, GLES20.GL_FLOAT,
-                false, 5 * 4, vertexBuffer);
+                false, 6 * 4, vertexBuffer);
         vertexBuffer.position(3);
-        GLES20.glVertexAttribPointer(textureRenderer.TexCoordsHandle, 2, GLES20.GL_FLOAT,
-                false, 5 * 4, vertexBuffer);
+        GLES20.glVertexAttribPointer(textureRenderer.normalHandle, 3, GLES20.GL_FLOAT,
+                false, 6 * 4, vertexBuffer);
 
         Matrix.setIdentityM(modelMatrix, 0);
         Matrix.translateM(modelMatrix, 0, 0.5f, 0.5f, -2f);
         Matrix.scaleM(modelMatrix, 0, 0.5f, 0.5f, 0.5f);
         //Matrix.rotateM(modelMatrix, 0, 45, 1.0f, 0f, 0f);
+        GLES20.glUniformMatrix4fv(textureRenderer.modelMatrixHandle, 1, false, modelMatrix, 0);
 
+        // 设置 normal matrix
+        Matrix4f normal = new Matrix4f(modelMatrix);
+        normal.inverse();
+        normal.transpose();
+        GLES20.glUniformMatrix4fv(textureRenderer.normalMatrixHandle, 1, false, normal.getArray(), 0);
+
+        // 设置 mvp matrix
         Matrix.multiplyMM(mMVPMatrix, 0, viewMatrix, 0, modelMatrix, 0);
-
         Matrix.multiplyMM(mMVPMatrix, 0, projectionMatrix, 0, mMVPMatrix, 0);
         GLES20.glUniformMatrix4fv(textureRenderer.mMVPMatrixHandle, 1, false, mMVPMatrix, 0);
 
-        OpenGLUtil.bindTexture(textureRenderer.texturePosHandle, cubeTexture, 0);
+        GLES20.glUniform3f(textureRenderer.cameraPosHandle, 0, 0, 0);
+
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_CUBE_MAP, skyboxTexture);
+        GLES30.glUniform1i(textureRenderer.skyBoxPosHandle, 0);
 
         GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 36);
         textureRenderer.end();
