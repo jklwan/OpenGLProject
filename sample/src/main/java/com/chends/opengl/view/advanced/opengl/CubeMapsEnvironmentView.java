@@ -10,24 +10,24 @@ import android.util.AttributeSet;
 
 import com.chends.opengl.renderer.advanced.opengl.CubeMapsEnvironmentRenderer;
 import com.chends.opengl.utils.OpenGLUtil;
-import com.chends.opengl.view.BaseGLView;
+import com.chends.opengl.view.BaseTypeGLView;
 
 /**
  * 立方体贴图 环境效果
  * @author chends create on 2020/1/15.
  */
-public class CubeMapsEnvironmentView extends BaseGLView implements SensorEventListener {
+public class CubeMapsEnvironmentView extends BaseTypeGLView implements SensorEventListener {
     private CubeMapsEnvironmentRenderer renderer;
     private SensorManager sensorManager;
     private Sensor rotationSensor;
     private float[] rotationMatrix = new float[16];
 
-    public CubeMapsEnvironmentView(Context context) {
-        this(context, null);
+    public CubeMapsEnvironmentView(Context context, int type) {
+        this(context, null, type);
     }
 
-    public CubeMapsEnvironmentView(Context context, AttributeSet attrs) {
-        super(context, attrs);
+    public CubeMapsEnvironmentView(Context context, AttributeSet attrs, int type) {
+        super(context, attrs, type);
 
         sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         if (sensorManager != null) {
@@ -39,7 +39,7 @@ public class CubeMapsEnvironmentView extends BaseGLView implements SensorEventLi
     @Override
     protected void init() {
         setEGLContextFactory(OpenGLUtil.createFactory());
-        setRenderer(renderer = new CubeMapsEnvironmentRenderer(getContext()));
+        setRenderer(renderer = new CubeMapsEnvironmentRenderer(getContext(), type));
         //setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
     }
 

@@ -116,8 +116,9 @@ public class CubeMapsEnvironmentRenderer extends BaseRenderer {
 
     private int type;
 
-    public CubeMapsEnvironmentRenderer(Context context) {
+    public CubeMapsEnvironmentRenderer(Context context, int type) {
         super(context);
+        this.type = type;
         vertexShaderCode = OpenGLUtil.getShaderFromResources(context, R.raw.advanced_opengl_cube_maps_environment_vertext);
         fragmentShaderCode = OpenGLUtil.getShaderFromResources(context, R.raw.advanced_opengl_cube_maps_environment_fragment);
         skyboxVertexShader = OpenGLUtil.getShaderFromResources(context, R.raw.advanced_opengl_cube_maps_vertext);
@@ -149,7 +150,7 @@ public class CubeMapsEnvironmentRenderer extends BaseRenderer {
 
     private class TextureRenderer {
         private int shaderProgram, positionHandle, normalHandle, mMVPMatrixHandle, modelMatrixHandle,
-                normalMatrixHandle, cameraPosHandle, skyBoxPosHandle;
+                normalMatrixHandle, cameraPosHandle, skyBoxPosHandle, typePosHandle;
 
         public TextureRenderer() {
             shaderProgram = OpenGLUtil.createProgram(vertexShaderCode, fragmentShaderCode);
@@ -160,6 +161,7 @@ public class CubeMapsEnvironmentRenderer extends BaseRenderer {
             normalMatrixHandle = GLES20.glGetUniformLocation(shaderProgram, "normalMatrix");
             cameraPosHandle = GLES20.glGetUniformLocation(shaderProgram, "cameraPos");
             skyBoxPosHandle = GLES20.glGetUniformLocation(shaderProgram, "skybox");
+            typePosHandle = GLES20.glGetUniformLocation(shaderProgram, "type");
         }
 
         public void start() {
@@ -248,11 +250,15 @@ public class CubeMapsEnvironmentRenderer extends BaseRenderer {
                 false, 6 * 4, vertexBuffer);
 
         Matrix.setIdentityM(modelMatrix, 0);
+        Matrix.rotateM(modelMatrix, 0, 90, 1, 0, 0);
+
         Matrix.translateM(modelMatrix, 0, 0.5f, 0.5f, -2f);
         Matrix.scaleM(modelMatrix, 0, 0.5f, 0.5f, 0.5f);
+        //Matrix.rotateM(modelMatrix, 0, 90, 1, 0, 0);
         //Matrix.rotateM(modelMatrix, 0, 45, 1.0f, 0f, 0f);
         GLES20.glUniformMatrix4fv(textureRenderer.modelMatrixHandle, 1, false, modelMatrix, 0);
 
+        Matrix.multiplyMM(modelMatrix, 0, rotationMatrix, 0, modelMatrix, 0);
         // 设置 normal matrix
         Matrix4f normal = new Matrix4f(modelMatrix);
         normal.inverse();
@@ -260,11 +266,13 @@ public class CubeMapsEnvironmentRenderer extends BaseRenderer {
         GLES20.glUniformMatrix4fv(textureRenderer.normalMatrixHandle, 1, false, normal.getArray(), 0);
 
         // 设置 mvp matrix
-        Matrix.multiplyMM(mMVPMatrix, 0, viewMatrix, 0, modelMatrix, 0);
+        Matrix.multiplyMM(mMVPMatrix, 0, viewMatrix, 0, mMVPMatrix, 0);
+
         Matrix.multiplyMM(mMVPMatrix, 0, projectionMatrix, 0, mMVPMatrix, 0);
         GLES20.glUniformMatrix4fv(textureRenderer.mMVPMatrixHandle, 1, false, mMVPMatrix, 0);
 
         GLES20.glUniform3f(textureRenderer.cameraPosHandle, 0, 0, 0);
+        GLES30.glUniform1i(textureRenderer.typePosHandle, type);
 
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
         GLES20.glBindTexture(GLES20.GL_TEXTURE_CUBE_MAP, skyboxTexture);
