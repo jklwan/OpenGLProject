@@ -15,10 +15,11 @@ import androidx.fragment.app.Fragment;
 /**
  * @author chends create on 2020/1/11.
  */
-public abstract class BaseChangeFragment  extends Fragment {
+public abstract class BaseChangeFragment extends Fragment {
 
     private ViewGroup containerLayout;
     private int type = 0;
+    private Button btn;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -29,22 +30,23 @@ public abstract class BaseChangeFragment  extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_change, container, false);
-        Button button = view.findViewById(R.id.change);
-        button.setOnClickListener(new ChangeClick());
+        btn = view.findViewById(R.id.change);
+        btn.setOnClickListener(new ChangeClick());
         containerLayout = view.findViewById(R.id.container);
-        button.performClick();
+        btn.performClick();
         return view;
     }
 
     private class ChangeClick implements View.OnClickListener {
         @Override
         public void onClick(View v) {
-            if (type > getTypeMax()) {
+            if (type >= getTypeMax()) {
                 type = 0;
             }
             containerLayout.removeAllViews();
             containerLayout.addView(onChangeClick(type), new ViewGroup.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            btn.setText(getTypeText(type));
             type++;
         }
     }
@@ -61,4 +63,8 @@ public abstract class BaseChangeFragment  extends Fragment {
      * @return 最大type值
      */
     protected abstract int getTypeMax();
+
+    protected CharSequence getTypeText(int type){
+        return "改变";
+    }
 }

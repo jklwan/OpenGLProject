@@ -16,6 +16,6 @@ public class DepthTestingFragment extends BaseChangeFragment {
 
     @Override
     protected int getTypeMax() {
-        return 2;
+        return 3;
     }
 }

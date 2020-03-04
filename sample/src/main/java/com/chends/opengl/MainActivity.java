@@ -11,17 +11,18 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.chends.opengl.databinding.ActivityMainBinding;
 import com.chends.opengl.model.MenuBean;
 import com.chends.opengl.model.MenuItemBean;
 import com.chends.opengl.utils.DisplayUtil;
 import com.chends.opengl.utils.LogUtil;
 import com.chends.opengl.utils.OpenGLUtil;
 import com.chends.opengl.view.advanced.opengl.BlendingView;
-import com.chends.opengl.view.advanced.opengl.CubeMapsEnvironmentFragment;
 import com.chends.opengl.view.advanced.opengl.CubeMapsView;
 import com.chends.opengl.view.advanced.opengl.DepthTestingFragment;
 import com.chends.opengl.view.advanced.opengl.FaceCullingView;
 import com.chends.opengl.view.advanced.opengl.FrameBuffersFragment;
+import com.chends.opengl.view.advanced.opengl.GeometryShaderFragment;
 import com.chends.opengl.view.advanced.opengl.StencilTestingView;
 import com.chends.opengl.view.light.LightCastersDirectionalView;
 import com.chends.opengl.view.light.LightCastersPointView;
@@ -64,26 +65,21 @@ import androidx.recyclerview.widget.RecyclerView;
  */
 public class MainActivity extends AppCompatActivity {
 
-    private DrawerLayout drawerLayout;
-    private FrameLayout content;
     private ActionBar actionBar;
-    private RecyclerView menu1, menu2;
     private SubAdapter subAdapter;
     private GLSurfaceView currentView;
 
+    ActivityMainBinding binding;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        drawerLayout = findViewById(R.id.drawer_layout);
-        View menu = findViewById(R.id.menuLayout);
-        ViewGroup.LayoutParams lp = menu.getLayoutParams();
+        binding = ActivityMainBinding.inflate(LayoutInflater.from(this));
+        setContentView(binding.getRoot());
+
+        ViewGroup.LayoutParams lp = binding.menuLayout.getLayoutParams();
         lp.width = Math.min(DisplayUtil.dp2px(350), DisplayUtil.screenWidth() * 3 / 4);
-        menu.setLayoutParams(lp);
+        binding.menuLayout.setLayoutParams(lp);
         actionBar = getSupportActionBar();
-        content = findViewById(R.id.content);
-        menu1 = findViewById(R.id.menu1);
-        menu2 = findViewById(R.id.menu2);
         if (!OpenGLUtil.checkOpenGLES20(this)) {
             toast("当前设备不支持OpenGL ES 2.0");
             finish();
@@ -99,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            drawerLayout.openDrawer(GravityCompat.START);
+            binding.drawerLayout.openDrawer(GravityCompat.START);
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -108,8 +104,8 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        if (drawerLayout != null && drawerLayout.isDrawerOpen(GravityCompat.START)) {
-            drawerLayout.closeDrawer(GravityCompat.START);
+        if (binding != null && binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            binding.drawerLayout.closeDrawer(GravityCompat.START);
             return;
         }
         super.onBackPressed();
@@ -120,11 +116,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setData() {
-        drawerLayout.addDrawerListener(new DrawerLayout.SimpleDrawerListener() {
+        binding.drawerLayout.addDrawerListener(new DrawerLayout.SimpleDrawerListener() {
             @Override
             public void onDrawerSlide(View drawerView, float slideOffset) {
-                drawerLayout.bringChildToFront(drawerView);
-                drawerLayout.requestLayout();
+                binding.drawerLayout.bringChildToFront(drawerView);
+                binding.drawerLayout.requestLayout();
             }
         });
         List<MenuBean> list = new ArrayList<>();
@@ -168,14 +164,15 @@ public class MainActivity extends AppCompatActivity {
         aOpenGL.addItem(new MenuItemBean("面剔除", FaceCullingView.class));
         aOpenGL.addItem(new MenuItemBean("帧缓冲", FrameBuffersFragment.class));
         aOpenGL.addItem(new MenuItemBean("立方体贴图", CubeMapsView.class));
-        aOpenGL.addItem(new MenuItemBean("环境映射", CubeMapsEnvironmentFragment.class));
+        //aOpenGL.addItem(new MenuItemBean("环境映射", CubeMapsEnvironmentFragment.class));
+        aOpenGL.addItem(new MenuItemBean("几何着色器", GeometryShaderFragment.class));
         list.add(aOpenGL);
 
-        menu1.setLayoutManager(new LinearLayoutManager(this));
-        menu2.setLayoutManager(new LinearLayoutManager(this));
+        binding.menu1.setLayoutManager(new LinearLayoutManager(this));
+        binding.menu2.setLayoutManager(new LinearLayoutManager(this));
         subAdapter = new SubAdapter();
-        menu2.setAdapter(subAdapter);
-        menu1.setAdapter(new MenuAdapter(list));
+        binding.menu2.setAdapter(subAdapter);
+        binding.menu1.setAdapter(new MenuAdapter(list));
     }
 
     public void afterSelect(MenuItemBean item) {
@@ -188,7 +185,7 @@ public class MainActivity extends AppCompatActivity {
             }
             transaction.commitNowAllowingStateLoss();
         } else {
-            content.removeAllViews();
+            binding.content.removeAllViews();
         }
         currentView = null;
         if (item.fCls == null) return;
@@ -197,7 +194,7 @@ public class MainActivity extends AppCompatActivity {
                 Constructor<?> viewCons = item.fCls.getConstructor(new Class[]{Context.class});
                 Object object = viewCons.newInstance(this);
                 if (object instanceof View) {
-                    content.addView((View) object, new FrameLayout.LayoutParams(
+                    binding.content.addView((View) object, new FrameLayout.LayoutParams(
                             ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
                     if (object instanceof GLSurfaceView) {
                         currentView = (GLSurfaceView) object;

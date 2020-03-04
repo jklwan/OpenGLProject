@@ -9,7 +9,7 @@ import com.chends.opengl.view.BaseChangeFragment;
  */
 public class CubeMapsEnvironmentFragment extends BaseChangeFragment {
 
-    CubeMapsEnvironmentView view;
+    private CubeMapsEnvironmentView view;
 
     @Override
     protected View onChangeClick(int type) {

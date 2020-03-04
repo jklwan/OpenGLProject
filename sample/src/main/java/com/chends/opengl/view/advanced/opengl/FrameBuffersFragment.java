@@ -16,6 +16,6 @@ public class FrameBuffersFragment extends BaseChangeFragment {
 
     @Override
     protected int getTypeMax() {
-        return 6;
+        return 7;
     }
 }

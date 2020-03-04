@@ -7,6 +7,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.opengl.GLES20;
 import android.opengl.GLES30;
+import android.opengl.GLES32;
 import android.opengl.GLSurfaceView;
 import android.opengl.GLUtils;
 import android.os.Build;
@@ -132,6 +133,15 @@ public class OpenGLUtil {
         }
     }
 
+    /**
+     * 检查OpenGL ES版本
+     * @param context context
+     * @param version <ul>版本<li>2:OpenGL ES 2.0</li>
+     *                <li>3:OpenGL ES 3.0</li>
+     *                <li>4:OpenGL ES 3.1</li>
+     *                <li>5:OpenGL ES 3.2</li></ul>
+     * @return 是否符合
+     */
     public static boolean checkOpenGL(Context context, int version) {
         if (OpenGLVersion == null) {
             init(context);
@@ -158,10 +168,19 @@ public class OpenGLUtil {
      * @return program
      */
     public static int createProgram(String vertexSource, String fragmentSource) {
-        return createProgram(vertexSource, fragmentSource, null);
+        return createProgram(vertexSource, fragmentSource, null, null);
     }
 
     public static int createProgram(String vertexSource, String fragmentSource, String[] attributes) {
+        return createProgram(vertexSource, fragmentSource, null, attributes);
+    }
+
+    public static int createProgram(String vertexSource, String fragmentSource, String geometrySource) {
+        return createProgram(vertexSource, fragmentSource, geometrySource, null);
+    }
+
+    public static int createProgram(String vertexSource, String fragmentSource, String geometrySource,
+                                    String[] attributes) {
         int vertexShader = loadShader(GLES20.GL_VERTEX_SHADER, vertexSource);
         if (vertexShader == 0) {
             return 0;
@@ -170,7 +189,15 @@ public class OpenGLUtil {
         if (pixelShader == 0) {
             return 0;
         }
-
+        int geometryShader = 0;
+        boolean loadGeometry = !TextUtils.isEmpty(geometrySource) && OpenGLVersion >= 5
+                && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N;
+        if (loadGeometry) {
+            geometryShader = loadShader(GLES32.GL_GEOMETRY_SHADER, geometrySource);
+            if (geometryShader == 0) {
+                return 0;
+            }
+        }
         int program = GLES20.glCreateProgram();
         checkGlError("glCreateProgram");
         if (program == 0) {
@@ -180,6 +207,10 @@ public class OpenGLUtil {
         checkGlError("glAttachShader");
         GLES20.glAttachShader(program, pixelShader);
         checkGlError("glAttachShader");
+        if (loadGeometry) {
+            GLES20.glAttachShader(program, geometryShader);
+            checkGlError("glAttachShader");
+        }
         if (attributes != null) {
             final int size = attributes.length;
             for (int i = 0; i < size; i++) {
