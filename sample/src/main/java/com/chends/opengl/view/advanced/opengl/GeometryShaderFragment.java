@@ -10,7 +10,7 @@ import com.chends.opengl.view.BaseChangeFragment;
  */
 public class GeometryShaderFragment extends BaseChangeFragment {
 
-    private final String[] title = new String[]{"点", "线", "房子", "纳米装"};
+    private final String[] title = new String[]{"点", "线", "房子", "纳米装爆炸", "法向量可视化"};
 
     @Override
     protected View onChangeClick(int type) {
