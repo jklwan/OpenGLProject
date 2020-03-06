@@ -119,9 +119,9 @@ public class CubeMapsEnvironmentRenderer extends BaseRenderer {
     public CubeMapsEnvironmentRenderer(Context context, int type) {
         super(context);
         this.type = type;
-        vertexShaderCode = OpenGLUtil.getShaderFromResources(context, R.raw.advanced_opengl_cube_maps_environment_vertext);
+        vertexShaderCode = OpenGLUtil.getShaderFromResources(context, R.raw.advanced_opengl_cube_maps_environment_vertex);
         fragmentShaderCode = OpenGLUtil.getShaderFromResources(context, R.raw.advanced_opengl_cube_maps_environment_fragment);
-        skyboxVertexShader = OpenGLUtil.getShaderFromResources(context, R.raw.advanced_opengl_cube_maps_vertext);
+        skyboxVertexShader = OpenGLUtil.getShaderFromResources(context, R.raw.advanced_opengl_cube_maps_vertex);
         skyboxFragmentShader = OpenGLUtil.getShaderFromResources(context, R.raw.advanced_opengl_cube_maps_fragment);
 
         Matrix.setIdentityM(rotationMatrix, 0);

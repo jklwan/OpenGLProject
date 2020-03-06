@@ -36,6 +36,6 @@ public class GeometryShaderView extends BaseTypeGLView {
         } else {
             setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         }
-
     }
+
 }

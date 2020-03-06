@@ -83,7 +83,7 @@ public class StencilTestingRenderer extends BaseRenderer {
 
     public StencilTestingRenderer(Context context) {
         super(context);
-        vertexShaderCode = OpenGLUtil.getShaderFromResources(context, R.raw.advanced_opengl_depth_testing_vertext);
+        vertexShaderCode = OpenGLUtil.getShaderFromResources(context, R.raw.advanced_opengl_depth_testing_vertex);
         fragmentShaderCode = OpenGLUtil.getShaderFromResources(context, R.raw.advanced_opengl_depth_testing_fragment);
         singleColorVertex =
                 "uniform mat4 uMVPMatrix;" +

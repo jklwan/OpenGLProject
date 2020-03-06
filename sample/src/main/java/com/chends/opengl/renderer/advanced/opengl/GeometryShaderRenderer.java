@@ -1,17 +1,22 @@
 package com.chends.opengl.renderer.advanced.opengl;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
 import android.os.SystemClock;
+import android.text.TextUtils;
 
 import com.chends.opengl.R;
 import com.chends.opengl.model.model.ObjectBean;
 import com.chends.opengl.renderer.BaseRenderer;
+import com.chends.opengl.utils.LogUtil;
 import com.chends.opengl.utils.OpenGLUtil;
 import com.chends.opengl.utils.model.LoadObjectUtil;
 
+import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.util.List;
 
@@ -25,9 +30,11 @@ import javax.microedition.khronos.opengles.GL10;
 public class GeometryShaderRenderer extends BaseRenderer {
     private final float[] points;
 
-    private String geometryShaderCode;
+    private String geometryShaderCode, normalVertexShaderCode, normalFragmentShaderCode;
     private GeometryRenderer geometryRenderer;
-    private NanoSuitRenderer nanoSuitRenderer;
+    private ExplodingRenderer explodingRenderer;
+    private NormalRenderer normalRenderer;
+    private VisualizationRenderer visualizationRenderer;
 
     private int type;
     private String dir = "nanosuit";
@@ -39,7 +46,7 @@ public class GeometryShaderRenderer extends BaseRenderer {
     public GeometryShaderRenderer(Context context, int type) {
         super(context);
         this.type = type;
-        int geometryRes, vertexRes = R.raw.advanced_opengl_geometry_shader_vertext,
+        int geometryRes, vertexRes = R.raw.advanced_opengl_geometry_shader_vertex,
                 fragmentRes = R.raw.advanced_opengl_geometry_shader_fragment;
         switch (type) {
             case 0:
@@ -70,13 +77,18 @@ public class GeometryShaderRenderer extends BaseRenderer {
                     bg = Color.GRAY;
                     list = LoadObjectUtil.loadObject(dir + "/nanosuit.obj", context.getResources(), dir);
                     if (type == 3) {
-                        vertexRes = R.raw.advanced_opengl_geometry_exploding_vertext;
+                        vertexRes = R.raw.advanced_opengl_geometry_exploding_vertex;
                         fragmentRes = R.raw.advanced_opengl_geometry_exploding_fragment;
                         geometryRes = R.raw.advanced_opengl_geometry_exploding_geometry;
                     } else {
-                        vertexRes = R.raw.advanced_opengl_geometry_exploding_vertext;
-                        fragmentRes = R.raw.advanced_opengl_geometry_exploding_fragment;
-                        geometryRes = R.raw.advanced_opengl_geometry_exploding_vertext;
+                        normalVertexShaderCode = OpenGLUtil.getShaderFromResources(context,
+                                R.raw.advanced_opengl_geometry_normal_vertex);
+                        normalFragmentShaderCode = OpenGLUtil.getShaderFromResources(context,
+                                R.raw.advanced_opengl_geometry_exploding_fragment);
+
+                        vertexRes = R.raw.advanced_opengl_geometry_normal_visualization_vertex;
+                        fragmentRes = R.raw.advanced_opengl_geometry_normal_visualization_fragment;
+                        geometryRes = R.raw.advanced_opengl_geometry_normal_visualization_geometry;
                     }
                 } else {
                     return;
@@ -111,16 +123,20 @@ public class GeometryShaderRenderer extends BaseRenderer {
         }
     }
 
-    private class NanoSuitRenderer{
+    /**
+     * 纳米装爆破效果
+     */
+    private class ExplodingRenderer {
+        private int shaderProgram, positionHandle, textureHandle, timeHandle, mMVPMatrixHandle,
+                diffuseHandle;
 
-        private int shaderProgram, positionHandle, textureHandle, timeHandle, mMVPMatrixHandle;
-
-        public NanoSuitRenderer() {
+        public ExplodingRenderer() {
             shaderProgram = OpenGLUtil.createProgram(vertexShaderCode, fragmentShaderCode, geometryShaderCode);
             positionHandle = 0;
             textureHandle = 1;
             timeHandle = GLES20.glGetUniformLocation(shaderProgram, "time");
             mMVPMatrixHandle = GLES20.glGetUniformLocation(shaderProgram, "uMVPMatrix");
+            diffuseHandle = GLES20.glGetUniformLocation(shaderProgram, "texture_diffuse1");
         }
 
         public void start() {
@@ -136,18 +152,79 @@ public class GeometryShaderRenderer extends BaseRenderer {
         }
     }
 
+    /**
+     * 纳米装
+     */
+    private class NormalRenderer {
+        private int shaderProgram, positionHandle, textureHandle, mMVPMatrixHandle,
+                diffuseHandle;
+
+        public NormalRenderer() {
+            shaderProgram = OpenGLUtil.createProgram(normalVertexShaderCode, normalFragmentShaderCode);
+            positionHandle = 0;
+            textureHandle = 1;
+            mMVPMatrixHandle = GLES20.glGetUniformLocation(shaderProgram, "uMVPMatrix");
+            diffuseHandle = GLES20.glGetUniformLocation(shaderProgram, "texture_diffuse1");
+        }
+
+        public void start() {
+            GLES20.glUseProgram(shaderProgram);
+            GLES20.glEnableVertexAttribArray(positionHandle);
+            GLES20.glEnableVertexAttribArray(textureHandle);
+        }
+
+        public void end() {
+            GLES20.glDisableVertexAttribArray(positionHandle);
+            GLES20.glDisableVertexAttribArray(textureHandle);
+            GLES20.glUseProgram(0);
+        }
+    }
+
+    /**
+     * 法向量可视化
+     */
+    private class VisualizationRenderer {
+        private int shaderProgram, positionHandle, normalHandle, modelHandle, viewHandle,
+                projectionHandle;
+
+        public VisualizationRenderer() {
+            shaderProgram = OpenGLUtil.createProgram(vertexShaderCode, fragmentShaderCode, geometryShaderCode);
+            positionHandle = 0;
+            normalHandle = 1;
+
+            modelHandle = GLES20.glGetUniformLocation(shaderProgram, "model");
+            viewHandle = GLES20.glGetUniformLocation(shaderProgram, "view");
+            projectionHandle = GLES20.glGetUniformLocation(shaderProgram, "projection");
+        }
+
+        public void start() {
+            GLES20.glUseProgram(shaderProgram);
+            GLES20.glEnableVertexAttribArray(positionHandle);
+            GLES20.glEnableVertexAttribArray(normalHandle);
+        }
+
+        public void end() {
+            GLES20.glDisableVertexAttribArray(positionHandle);
+            GLES20.glDisableVertexAttribArray(normalHandle);
+            GLES20.glUseProgram(0);
+        }
+    }
+
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         super.onSurfaceCreated(gl, config);
-        switch (type){
+        switch (type) {
             case 0:
             case 1:
             case 2:
                 geometryRenderer = new GeometryRenderer();
                 break;
             case 3:
+                explodingRenderer = new ExplodingRenderer();
+                break;
             case 4:
-                nanoSuitRenderer = new NanoSuitRenderer();
+                normalRenderer = new NormalRenderer();
+                visualizationRenderer = new VisualizationRenderer();
                 break;
         }
     }
@@ -157,7 +234,6 @@ public class GeometryShaderRenderer extends BaseRenderer {
         super.onSurfaceChanged(gl, width, height);
         if (type == 3 || type == 4) {
             float ratio = (float) width / height;
-
             Matrix.frustumM(projectionMatrix, 0, -ratio, ratio, -1, 1, 1f, 1200f);
             Matrix.setLookAtM(viewMatrix, 0, mViewPos[0], mViewPos[1], mViewPos[2],
                     0f, 0f, 0f,
@@ -178,7 +254,13 @@ public class GeometryShaderRenderer extends BaseRenderer {
                 break;
             case 3:
             case 4:
-                drawNanoSuit();
+                Matrix.setIdentityM(modelMatrix, 0);
+                Matrix.translateM(modelMatrix, 0, 0f, -10.0f, 0.0f);
+                if (type == 3) {
+                    drawExploding();
+                } else {
+                    drawNormal();
+                }
                 break;
         }
     }
@@ -196,27 +278,117 @@ public class GeometryShaderRenderer extends BaseRenderer {
         geometryRenderer.end();
     }
 
-    private void drawNanoSuit(){
-        nanoSuitRenderer.start();
+    private void drawExploding() {
+        explodingRenderer.start();
         Matrix.multiplyMM(mMVPMatrix, 0, viewMatrix, 0, modelMatrix, 0);
         Matrix.multiplyMM(mMVPMatrix, 0, projectionMatrix, 0, mMVPMatrix, 0);
-        GLES20.glUniformMatrix4fv(nanoSuitRenderer.mMVPMatrixHandle, 1, false, mMVPMatrix, 0);
+        GLES20.glUniformMatrix4fv(explodingRenderer.mMVPMatrixHandle, 1, false, mMVPMatrix, 0);
 
-        GLES20.glUniform1f(nanoSuitRenderer.timeHandle, SystemClock.uptimeMillis() % 1000f);
+        float time = SystemClock.uptimeMillis() / 1000f;
+        //LogUtil.d("time: " + time);
+        GLES20.glUniform1f(explodingRenderer.timeHandle, time);
         if (list != null && !list.isEmpty()) {
             for (ObjectBean item : list) {
                 if (item != null) {
-                    GLES20.glVertexAttribPointer(nanoSuitRenderer.positionHandle, 3, GLES20.GL_FLOAT,
+                    GLES20.glVertexAttribPointer(explodingRenderer.positionHandle, 3, GLES20.GL_FLOAT,
                             false, 3 * 4, OpenGLUtil.createFloatBuffer(item.aVertices));
 
-                    GLES20.glVertexAttribPointer(nanoSuitRenderer.textureHandle, 2, GLES20.GL_FLOAT,
+                    GLES20.glVertexAttribPointer(explodingRenderer.textureHandle, 2, GLES20.GL_FLOAT,
                             false, 2 * 4, OpenGLUtil.createFloatBuffer(item.aTexCoords));
+                    if (item.mtl != null) {
+                        if (!TextUtils.isEmpty(item.mtl.Kd_Texture)) {
+                            if (item.diffuse < 0) {
+                                try {
+                                    Bitmap bitmap = BitmapFactory.decodeStream(context.getAssets().open(
+                                            dir + "/" + item.mtl.Kd_Texture));
+                                    item.diffuse = OpenGLUtil.createTextureNormal(bitmap);
+                                    bitmap.recycle();
+                                } catch (IOException e) {
+                                    LogUtil.e(e);
+                                }
+                            }
+                        } else {
+                            if (item.diffuse < 0) {
+                                Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.ic_default_texture);
+                                item.diffuse = OpenGLUtil.createTextureNormal(bitmap);
+                                bitmap.recycle();
+                            }
+                        }
+
+                        OpenGLUtil.bindTexture(explodingRenderer.diffuseHandle, item.diffuse, 0);
+
+                    }
+                    // 绘制顶点
+                    GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, item.aVertices.length / 3);
+                }
+            }
+        }
+        explodingRenderer.end();
+    }
+
+    private void drawNormal(){
+        normalRenderer.start();
+        Matrix.multiplyMM(mMVPMatrix, 0, viewMatrix, 0, modelMatrix, 0);
+        Matrix.multiplyMM(mMVPMatrix, 0, projectionMatrix, 0, mMVPMatrix, 0);
+        GLES20.glUniformMatrix4fv(normalRenderer.mMVPMatrixHandle, 1, false, mMVPMatrix, 0);
+        if (list != null && !list.isEmpty()) {
+            for (ObjectBean item : list) {
+                if (item != null) {
+                    GLES20.glVertexAttribPointer(normalRenderer.positionHandle, 3, GLES20.GL_FLOAT,
+                            false, 3 * 4, OpenGLUtil.createFloatBuffer(item.aVertices));
+
+                    GLES20.glVertexAttribPointer(normalRenderer.textureHandle, 2, GLES20.GL_FLOAT,
+                            false, 2 * 4, OpenGLUtil.createFloatBuffer(item.aTexCoords));
+                    if (item.mtl != null) {
+                        if (!TextUtils.isEmpty(item.mtl.Kd_Texture)) {
+                            if (item.diffuse < 0) {
+                                try {
+                                    Bitmap bitmap = BitmapFactory.decodeStream(context.getAssets().open(
+                                            dir + "/" + item.mtl.Kd_Texture));
+                                    item.diffuse = OpenGLUtil.createTextureNormal(bitmap);
+                                    bitmap.recycle();
+                                } catch (IOException e) {
+                                    LogUtil.e(e);
+                                }
+                            }
+                        } else {
+                            if (item.diffuse < 0) {
+                                Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.ic_default_texture);
+                                item.diffuse = OpenGLUtil.createTextureNormal(bitmap);
+                                bitmap.recycle();
+                            }
+                        }
+
+                        OpenGLUtil.bindTexture(normalRenderer.diffuseHandle, item.diffuse, 0);
+
+                    }
+                    // 绘制顶点
+                    GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, item.aVertices.length / 3);
+                }
+            }
+        }
+        normalRenderer.end();
+
+        visualizationRenderer.start();
+        GLES20.glUniformMatrix4fv(visualizationRenderer.modelHandle, 1, false, modelMatrix, 0);
+        GLES20.glUniformMatrix4fv(visualizationRenderer.viewHandle, 1, false, viewMatrix, 0);
+        GLES20.glUniformMatrix4fv(visualizationRenderer.projectionHandle, 1, false, projectionMatrix, 0);
+
+        if (list != null && !list.isEmpty()) {
+            for (ObjectBean item : list) {
+                if (item != null) {
+                    GLES20.glVertexAttribPointer(visualizationRenderer.positionHandle, 3, GLES20.GL_FLOAT,
+                            false, 3 * 4, OpenGLUtil.createFloatBuffer(item.aVertices));
+
+                    GLES20.glVertexAttribPointer(visualizationRenderer.normalHandle, 3, GLES20.GL_FLOAT,
+                            false, 3 * 4, OpenGLUtil.createFloatBuffer(item.aNormals));
 
                     // 绘制顶点
                     GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, item.aVertices.length / 3);
                 }
             }
         }
-        nanoSuitRenderer.end();
+
+        visualizationRenderer.end();
     }
 }

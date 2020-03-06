@@ -100,7 +100,7 @@ public class BlendingRenderer extends BaseRenderer {
 
     public BlendingRenderer(Context context) {
         super(context);
-        vertexShaderCode = OpenGLUtil.getShaderFromResources(context, R.raw.advanced_opengl_blending_vertext);
+        vertexShaderCode = OpenGLUtil.getShaderFromResources(context, R.raw.advanced_opengl_blending_vertex);
         fragmentShaderCode = OpenGLUtil.getShaderFromResources(context, R.raw.advanced_opengl_blending_fragment);
     }
 

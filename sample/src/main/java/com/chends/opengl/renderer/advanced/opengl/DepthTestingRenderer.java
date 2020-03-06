@@ -82,7 +82,7 @@ public class DepthTestingRenderer extends BaseRenderer {
     public DepthTestingRenderer(Context context, int type) {
         super(context);
         this.type = type;
-        vertexShaderCode = OpenGLUtil.getShaderFromResources(context, R.raw.advanced_opengl_depth_testing_vertext);
+        vertexShaderCode = OpenGLUtil.getShaderFromResources(context, R.raw.advanced_opengl_depth_testing_vertex);
         fragmentShaderCode = OpenGLUtil.getShaderFromResources(context, R.raw.advanced_opengl_depth_testing_fragment);
     }
 

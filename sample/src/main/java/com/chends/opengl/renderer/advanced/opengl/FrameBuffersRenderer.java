@@ -93,7 +93,7 @@ public class FrameBuffersRenderer extends BaseRenderer {
         this.type = type;
         vertexShaderCode = OpenGLUtil.getShaderFromResources(context, R.raw.texture_vertext);
         fragmentShaderCode = OpenGLUtil.getShaderFromResources(context, R.raw.texture_fragment);
-        vertexFrameShader = OpenGLUtil.getShaderFromResources(context, R.raw.advanced_opengl_frame_buffers_vertext);
+        vertexFrameShader = OpenGLUtil.getShaderFromResources(context, R.raw.advanced_opengl_frame_buffers_vertex);
         fragmentFrameShader = OpenGLUtil.getShaderFromResources(context, R.raw.advanced_opengl_frame_buffers_fragment);
     }
 
