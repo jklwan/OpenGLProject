@@ -23,6 +23,7 @@ import com.chends.opengl.view.advanced.opengl.DepthTestingFragment;
 import com.chends.opengl.view.advanced.opengl.FaceCullingView;
 import com.chends.opengl.view.advanced.opengl.FrameBuffersFragment;
 import com.chends.opengl.view.advanced.opengl.GeometryShaderFragment;
+import com.chends.opengl.view.advanced.opengl.InstancingFragment;
 import com.chends.opengl.view.advanced.opengl.StencilTestingView;
 import com.chends.opengl.view.light.LightCastersDirectionalView;
 import com.chends.opengl.view.light.LightCastersPointView;
@@ -166,6 +167,7 @@ public class MainActivity extends AppCompatActivity {
         aOpenGL.addItem(new MenuItemBean("立方体贴图", CubeMapsView.class));
         //aOpenGL.addItem(new MenuItemBean("环境映射", CubeMapsEnvironmentFragment.class));
         aOpenGL.addItem(new MenuItemBean("几何着色器", GeometryShaderFragment.class));
+        aOpenGL.addItem(new MenuItemBean("实例化", InstancingFragment.class));
         list.add(aOpenGL);
 
         binding.menu1.setLayoutManager(new LinearLayoutManager(this));
