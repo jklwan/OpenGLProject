@@ -10,7 +10,7 @@ import com.chends.opengl.view.BaseChangeFragment;
  */
 public class InstancingFragment extends BaseChangeFragment {
 
-    private final String[] title = new String[]{"多正方形", "多正方形变换", "小行星带（不使用实例化2000个）", "小行星带（实例化10w个）"};
+    private final String[] title = new String[]{"多正方形（二维数组）", "多正方形", "多正方形变换", "小行星带（不使用实例化2000个）", "小行星带（实例化10w个）"};
 
     @Override
     protected View onChangeClick(int type) {
