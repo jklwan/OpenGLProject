@@ -19,6 +19,7 @@ import com.chends.opengl.utils.model.LoadObjectUtil;
 import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.util.List;
+import java.util.Random;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -32,14 +33,16 @@ public class InstancingRenderer extends BaseRenderer {
     private float[] translations;
     private float[][] translationArray;
 
-    private String normalVertexShaderCode, normalFragmentShaderCode;
+    private String asteroidsInstancedVertexShaderCode;
     private QuadsRenderer quadsRenderer;
     private AsteroidsRenderer asteroidsRenderer;
+    private AsteroidsInstancedRenderer instancedRenderer;
+    private AsteroidsInstancedPlanetRenderer instancedPlanetRenderer;
 
     private int type;
     private final float[] mMVPMatrix = new float[16], projectionMatrix = new float[16],
             viewMatrix = new float[16], modelMatrix = new float[16];
-    private float[] mViewPos = new float[]{0f, 0f, 55f, 1f};
+    private float[] eyePos, centerPos;
 
     public InstancingRenderer(Context context, int type) {
         super(context);
@@ -63,8 +66,11 @@ public class InstancingRenderer extends BaseRenderer {
                 fragmentRes = R.raw.advanced_opengl_instancing_quads_fragment;
                 break;
             case 3:
+            case 4:
                 vertexRes = R.raw.advanced_opengl_instancing_asteroids_vertex;
                 fragmentRes = R.raw.advanced_opengl_instancing_asteroids_fragment;
+                asteroidsInstancedVertexShaderCode = OpenGLUtil.getShaderFromResources(context,
+                        R.raw.advanced_opengl_instancing_asteroids_instanced_vertex);
                 break;
             default:
                 return;
@@ -115,7 +121,7 @@ public class InstancingRenderer extends BaseRenderer {
         public AsteroidsRenderer() {
             shaderProgram = OpenGLUtil.createProgram(vertexShaderCode, fragmentShaderCode);
             positionHandle = 0;
-            texCoordsHandle = 1;
+            texCoordsHandle = 2;
             mMVPMatrixHandle = GLES20.glGetUniformLocation(shaderProgram, "uMVPMatrix");
             diffuseHandle = GLES20.glGetUniformLocation(shaderProgram, "texture_diffuse1");
         }
@@ -187,59 +193,176 @@ public class InstancingRenderer extends BaseRenderer {
     }
 
     /**
-     * 纳米装
+     * 小行星带_小行星（使用实例化）
      */
-    private class NormalRenderer {
-        private int shaderProgram, positionHandle, textureHandle, mMVPMatrixHandle,
+    private class AsteroidsInstancedRenderer {
+        private int shaderProgram, positionHandle, texCoordsHandle, instanceMatrixHandle, mVPMatrixHandle,
                 diffuseHandle;
 
-        public NormalRenderer() {
-            shaderProgram = OpenGLUtil.createProgram(normalVertexShaderCode, normalFragmentShaderCode);
+        public AsteroidsInstancedRenderer() {
+            shaderProgram = OpenGLUtil.createProgram(asteroidsInstancedVertexShaderCode, fragmentShaderCode);
             positionHandle = 0;
-            textureHandle = 1;
-            mMVPMatrixHandle = GLES20.glGetUniformLocation(shaderProgram, "uMVPMatrix");
+            texCoordsHandle = 2;
+            instanceMatrixHandle = 3;
+            mVPMatrixHandle = GLES20.glGetUniformLocation(shaderProgram, "uVPMatrix");
             diffuseHandle = GLES20.glGetUniformLocation(shaderProgram, "texture_diffuse1");
+        }
+
+        private void drawRock(float[] matrices, int amount) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                String dir = "rock";
+                List<ObjectBean> list = LoadObjectUtil.loadObject(dir + "/rock.obj",
+                        context.getResources(), dir);
+
+                if (!list.isEmpty()) {
+                    for (ObjectBean item : list) {
+                        if (item != null) {
+                            GLES20.glVertexAttribPointer(positionHandle, 3, GLES20.GL_FLOAT,
+                                    false, 3 * 4, OpenGLUtil.createFloatBuffer(item.aVertices));
+
+                            GLES20.glVertexAttribPointer(texCoordsHandle, 2, GLES20.GL_FLOAT,
+                                    false, 2 * 4, OpenGLUtil.createFloatBuffer(item.aTexCoords));
+                            if (item.mtl != null) {
+                                if (!TextUtils.isEmpty(item.mtl.Kd_Texture)) {
+                                    if (item.diffuse < 0) {
+                                        try {
+                                            Bitmap bitmap = BitmapFactory.decodeStream(context.getAssets().open(
+                                                    dir + "/" + item.mtl.Kd_Texture));
+                                            item.diffuse = OpenGLUtil.createTextureNormal(bitmap);
+                                            bitmap.recycle();
+                                        } catch (IOException e) {
+                                            LogUtil.e(e);
+                                        }
+                                    }
+                                } else {
+                                    if (item.diffuse < 0) {
+                                        Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.ic_default_texture);
+                                        item.diffuse = OpenGLUtil.createTextureNormal(bitmap);
+                                        bitmap.recycle();
+                                    }
+                                }
+
+                                OpenGLUtil.bindTexture(diffuseHandle, item.diffuse, 0);
+
+                            }
+
+                            FloatBuffer buffer = OpenGLUtil.createFloatBuffer(matrices);
+                            GLES20.glVertexAttribPointer(instanceMatrixHandle, 4, GLES20.GL_FLOAT,
+                                    false, 16 * 4, buffer);
+                            buffer.position(4);
+                            GLES20.glVertexAttribPointer(instanceMatrixHandle + 1, 4, GLES20.GL_FLOAT,
+                                    false, 16 * 4, buffer);
+                            buffer.position(8);
+                            GLES20.glVertexAttribPointer(instanceMatrixHandle + 2, 4, GLES20.GL_FLOAT,
+                                    false, 16 * 4, buffer);
+                            buffer.position(12);
+                            GLES20.glVertexAttribPointer(instanceMatrixHandle + 3, 4, GLES20.GL_FLOAT,
+                                    false, 16 * 4, buffer);
+
+                            GLES30.glVertexAttribDivisor(instanceMatrixHandle, 1);
+                            GLES30.glVertexAttribDivisor(instanceMatrixHandle + 1, 1);
+                            GLES30.glVertexAttribDivisor(instanceMatrixHandle + 2, 1);
+                            GLES30.glVertexAttribDivisor(instanceMatrixHandle + 3, 1);
+
+
+                            // 绘制顶点
+                            /*GLES30.glDrawElementsInstanced(GLES20.GL_TRIANGLES, item.vertexIndices.size(),
+                                    GLES20.GL_UNSIGNED_INT, 0, amount);*/
+                            GLES30.glDrawArraysInstanced(GLES20.GL_TRIANGLES, 0, item.aVertices.length / 3,
+                                    amount);
+                        }
+                    }
+                }
+            }
         }
 
         public void start() {
             GLES20.glUseProgram(shaderProgram);
             GLES20.glEnableVertexAttribArray(positionHandle);
-            GLES20.glEnableVertexAttribArray(textureHandle);
+            GLES20.glEnableVertexAttribArray(texCoordsHandle);
+            GLES20.glEnableVertexAttribArray(instanceMatrixHandle);
+            GLES20.glEnableVertexAttribArray(instanceMatrixHandle + 1);
+            GLES20.glEnableVertexAttribArray(instanceMatrixHandle + 2);
+            GLES20.glEnableVertexAttribArray(instanceMatrixHandle + 3);
         }
 
         public void end() {
             GLES20.glDisableVertexAttribArray(positionHandle);
-            GLES20.glDisableVertexAttribArray(textureHandle);
+            GLES20.glDisableVertexAttribArray(texCoordsHandle);
+            GLES20.glDisableVertexAttribArray(instanceMatrixHandle);
+            GLES20.glDisableVertexAttribArray(instanceMatrixHandle + 1);
+            GLES20.glDisableVertexAttribArray(instanceMatrixHandle + 2);
+            GLES20.glDisableVertexAttribArray(instanceMatrixHandle + 3);
             GLES20.glUseProgram(0);
         }
     }
 
     /**
-     * 法向量可视化
+     * 小行星带_行星（使用实例化）
      */
-    private class VisualizationRenderer {
-        private int shaderProgram, positionHandle, normalHandle, modelHandle, viewHandle,
-                projectionHandle;
+    private class AsteroidsInstancedPlanetRenderer {
+        private int shaderProgram, positionHandle, texCoordsHandle, mMVPMatrixHandle,
+                diffuseHandle;
 
-        public VisualizationRenderer() {
+        public AsteroidsInstancedPlanetRenderer() {
             shaderProgram = OpenGLUtil.createProgram(vertexShaderCode, fragmentShaderCode);
             positionHandle = 0;
-            normalHandle = 1;
+            texCoordsHandle = 2;
+            mMVPMatrixHandle = GLES20.glGetUniformLocation(shaderProgram, "uMVPMatrix");
+            diffuseHandle = GLES20.glGetUniformLocation(shaderProgram, "texture_diffuse1");
+        }
 
-            modelHandle = GLES20.glGetUniformLocation(shaderProgram, "model");
-            viewHandle = GLES20.glGetUniformLocation(shaderProgram, "view");
-            projectionHandle = GLES20.glGetUniformLocation(shaderProgram, "projection");
+        private void drawPlanet() {
+            String dir = "planet";
+            List<ObjectBean> list = LoadObjectUtil.loadObject(dir + "/planet.obj",
+                    context.getResources(), dir);
+            if (!list.isEmpty()) {
+                for (ObjectBean item : list) {
+                    if (item != null) {
+                        GLES20.glVertexAttribPointer(positionHandle, 3, GLES20.GL_FLOAT,
+                                false, 3 * 4, OpenGLUtil.createFloatBuffer(item.aVertices));
+
+                        GLES20.glVertexAttribPointer(texCoordsHandle, 2, GLES20.GL_FLOAT,
+                                false, 2 * 4, OpenGLUtil.createFloatBuffer(item.aTexCoords));
+                        if (item.mtl != null) {
+                            if (!TextUtils.isEmpty(item.mtl.Kd_Texture)) {
+                                if (item.diffuse < 0) {
+                                    try {
+                                        Bitmap bitmap = BitmapFactory.decodeStream(context.getAssets().open(
+                                                dir + "/" + item.mtl.Kd_Texture));
+                                        item.diffuse = OpenGLUtil.createTextureNormal(bitmap);
+                                        bitmap.recycle();
+                                    } catch (IOException e) {
+                                        LogUtil.e(e);
+                                    }
+                                }
+                            } else {
+                                if (item.diffuse < 0) {
+                                    Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.ic_default_texture);
+                                    item.diffuse = OpenGLUtil.createTextureNormal(bitmap);
+                                    bitmap.recycle();
+                                }
+                            }
+
+                            OpenGLUtil.bindTexture(diffuseHandle, item.diffuse, 0);
+
+                        }
+                        // 绘制顶点
+                        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, item.aVertices.length / 3);
+                    }
+                }
+            }
         }
 
         public void start() {
             GLES20.glUseProgram(shaderProgram);
             GLES20.glEnableVertexAttribArray(positionHandle);
-            GLES20.glEnableVertexAttribArray(normalHandle);
+            GLES20.glEnableVertexAttribArray(texCoordsHandle);
         }
 
         public void end() {
             GLES20.glDisableVertexAttribArray(positionHandle);
-            GLES20.glDisableVertexAttribArray(normalHandle);
+            GLES20.glDisableVertexAttribArray(texCoordsHandle);
             GLES20.glUseProgram(0);
         }
     }
@@ -254,8 +377,14 @@ public class InstancingRenderer extends BaseRenderer {
                 quadsRenderer = new QuadsRenderer();
                 break;
             case 3:
-            case 4:
+                eyePos = new float[]{0, 10, 65};
+                centerPos = new float[]{-10, 0, 0};
                 asteroidsRenderer = new AsteroidsRenderer();
+                break;
+            case 4:
+                eyePos = new float[]{0, 22, 165};
+                centerPos = new float[]{-10, 0, 0};
+                instancedPlanetRenderer = new AsteroidsInstancedPlanetRenderer();
                 break;
         }
     }
@@ -265,16 +394,14 @@ public class InstancingRenderer extends BaseRenderer {
         super.onSurfaceChanged(gl, width, height);
         switch (type) {
             case 3:
-                break;
             case 4:
+                float ratio = (float) width / height;
+                //Matrix.perspectiveM(projectionMatrix, 0, 135, ratio, 0.1f, 1000f);
+                Matrix.frustumM(projectionMatrix, 0, -ratio, ratio, -1, 1, 1f, 1000f);
+                Matrix.setLookAtM(viewMatrix, 0, eyePos[0], eyePos[1], eyePos[2],
+                        centerPos[0],  centerPos[1],  centerPos[2],
+                        0f, 1.0f, 0.0f);
                 break;
-        }
-        if (type == 3 || type == 4) {
-            float ratio = (float) width / height;
-            Matrix.frustumM(projectionMatrix, 0, -ratio, ratio, -1, 1, 0.1f, 1000f);
-            Matrix.setLookAtM(viewMatrix, 0, mViewPos[0], mViewPos[1], mViewPos[2],
-                    0f, 0f, 0f,
-                    0f, 1.0f, 0.0f);
         }
     }
 
@@ -291,11 +418,15 @@ public class InstancingRenderer extends BaseRenderer {
                 drawAsteroids();
                 break;
             case 4:
-                drawAsteroidsPlanet();
+                drawAsteroidsInstancedPlanet();
+                drawAsteroidsInstanced();
                 break;
         }
     }
 
+    /**
+     * 绘制矩形
+     */
     private void drawQuads() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
             if (type == 0) {
@@ -343,7 +474,7 @@ public class InstancingRenderer extends BaseRenderer {
                 GLES20.glVertexAttribPointer(quadsRenderer.offsetHandle, 2, GLES20.GL_FLOAT,
                         false, 2 * 4, OpenGLUtil.createFloatBuffer(translations));
 
-                GLES30.glVertexAttribDivisor(2, 1);
+                GLES30.glVertexAttribDivisor(quadsRenderer.offsetHandle, 1);
             }
 
             GLES30.glDrawArraysInstanced(GLES20.GL_TRIANGLES, 0, 6, 100);
@@ -351,39 +482,49 @@ public class InstancingRenderer extends BaseRenderer {
         }
     }
 
-    private void drawAsteroids() {
-        int amount = 100;
+    private float[][] createMatrices(int amount, float radius, float offset) {
         float[][] modelMatrices = new float[amount][16];
-        //srand(glfwGetTime()); // initialize random seed
-        float radius = 50.0f;
-        float offset = 2.5f;
+        Random random = new Random(System.nanoTime());
+
         for (int i = 0; i < amount; i++) {
+            float[] modelMatrix = new float[16];
             Matrix.setIdentityM(modelMatrix, 0);
             // 1. translation: displace along circle with 'radius' in range [-offset, offset]
             float angle = (float) i / (float) amount * 360.0f;
-            float displacement = (float) (Math.random() % (int) (2 * offset * 100)) / 100.0f - offset;
-            float x = (float) Math.sin(angle) * radius + displacement;
-            displacement = (float) (Math.random() % (int) (2 * offset * 100)) / 100.0f - offset;
+            float displacement = (float) (random.nextInt((int) (2 * offset * 100))) / 100.0f - offset;
+            float x = (float) Math.sin(Math.toRadians(angle)) * radius + displacement;
+            displacement = (float) (random.nextInt((int) (2 * offset * 100))) / 100.0f - offset;
             float y = displacement * 0.4f; // keep height of asteroid field smaller compared to width of x and z
-            displacement = (float) (Math.random() % (int) (2 * offset * 100)) / 100.0f - offset;
-            float z = (float) Math.cos(angle) * radius + displacement;
+            displacement = (float) (random.nextInt((int) (2 * offset * 100))) / 100.0f - offset;
+            float z = (float) Math.cos(Math.toRadians(angle)) * radius + displacement;
             Matrix.translateM(modelMatrix, 0, x, y, z);
             // 2. scale: Scale between 0.05 and 0.25f
-            float scale = (float) (Math.random() % 20) / 100.0f + 0.05f;
+            float scale = (float) (random.nextInt(20)) / 100.0f + 0.05f;
             Matrix.scaleM(modelMatrix, 0, scale, scale, scale);
 
             // 3. rotation: add random rotation around a (semi)randomly picked rotation axis vector
-            float rotAngle = (float) (Math.random() % 360f);
+            float rotAngle = (float) random.nextInt(360);
             Matrix.rotateM(modelMatrix, 0, rotAngle, 0.4f, 0.6f, 0.8f);
 
             // 4. now add to list of matrices
             modelMatrices[i] = modelMatrix;
         }
+        return modelMatrices;
+    }
+
+    /**
+     * 绘制小行星带（不使用实例化）
+     */
+    private void drawAsteroids() {
+        int amount = 200;
+        float[][] modelMatrices = createMatrices(amount, 50.0f, 2.5f);
 
         asteroidsRenderer.start();
         Matrix.setIdentityM(modelMatrix, 0);
         Matrix.translateM(modelMatrix, 0, 0.0f, -3.0f, 0.0f);
-        Matrix.scaleM(modelMatrix, 0, 4.0f, 4.0f, 4.0f);
+        Matrix.scaleM(modelMatrix, 0, 5.0f, 5.0f, 5.0f);
+
+        Matrix.setIdentityM(mMVPMatrix, 0);
         Matrix.multiplyMM(mMVPMatrix, 0, viewMatrix, 0, modelMatrix, 0);
         Matrix.multiplyMM(mMVPMatrix, 0, projectionMatrix, 0, mMVPMatrix, 0);
         GLES20.glUniformMatrix4fv(asteroidsRenderer.mMVPMatrixHandle, 1, false, mMVPMatrix, 0);
@@ -391,6 +532,7 @@ public class InstancingRenderer extends BaseRenderer {
         asteroidsRenderer.drawPlanet();
 
         for (int i = 0; i < amount; i++) {
+            Matrix.setIdentityM(mMVPMatrix, 0);
             Matrix.multiplyMM(mMVPMatrix, 0, viewMatrix, 0, modelMatrices[i], 0);
             Matrix.multiplyMM(mMVPMatrix, 0, projectionMatrix, 0, mMVPMatrix, 0);
             GLES20.glUniformMatrix4fv(asteroidsRenderer.mMVPMatrixHandle, 1, false, mMVPMatrix, 0);
@@ -400,7 +542,45 @@ public class InstancingRenderer extends BaseRenderer {
         asteroidsRenderer.end();
     }
 
-    private void drawAsteroidsPlanet() {
+    /**
+     * 绘制小行星带_小行星（使用实例化）
+     */
+    private void drawAsteroidsInstanced() {
+        instancedRenderer = new AsteroidsInstancedRenderer();
+        int amount = 100_000;
+        float[][] modelMatrices = createMatrices(amount, 120f, 25f);
+        float[] matrices = new float[amount * 16];
 
+        for (int i = 0; i < amount; i++) {
+            System.arraycopy(modelMatrices[i], 0, matrices, i * 16, 16);
+        }
+
+        instancedRenderer.start();
+
+        Matrix.setIdentityM(mMVPMatrix, 0);
+        Matrix.multiplyMM(mMVPMatrix, 0, projectionMatrix, 0, viewMatrix, 0);
+        GLES20.glUniformMatrix4fv(instancedRenderer.mVPMatrixHandle, 1, false, mMVPMatrix, 0);
+
+        instancedRenderer.drawRock(matrices, amount);
+        instancedRenderer.end();
+    }
+
+    /**
+     * 绘制小行星带_行星（使用实例化）
+     */
+    private void drawAsteroidsInstancedPlanet() {
+        instancedPlanetRenderer.start();
+
+        Matrix.setIdentityM(modelMatrix, 0);
+        Matrix.translateM(modelMatrix, 0, 0.0f, -3.0f, 0.0f);
+        Matrix.scaleM(modelMatrix, 0, 5.0f, 5.0f, 5.0f);
+
+        Matrix.setIdentityM(mMVPMatrix, 0);
+        Matrix.multiplyMM(mMVPMatrix, 0, viewMatrix, 0, modelMatrix, 0);
+        Matrix.multiplyMM(mMVPMatrix, 0, projectionMatrix, 0, mMVPMatrix, 0);
+        GLES20.glUniformMatrix4fv(instancedPlanetRenderer.mMVPMatrixHandle, 1, false, mMVPMatrix, 0);
+
+        instancedPlanetRenderer.drawPlanet();
+        instancedPlanetRenderer.end();
     }
 }
