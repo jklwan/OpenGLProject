@@ -25,11 +25,20 @@ public class InstancingView extends BaseTypeGLView {
     @Override
     protected void init() {
         setEGLContextFactory(OpenGLUtil.createFactory());
-        if (!OpenGLUtil.checkOpenGL(getContext(), 3)){
+        if (!OpenGLUtil.checkOpenGL(getContext(), 3)) {
             Toast.makeText(getContext(), "该设备不支持实例化", Toast.LENGTH_SHORT).show();
             return;
         }
         setRenderer(new InstancingRenderer(getContext(), type));
+        /*switch (type) {
+            case 3:
+            case 4:
+                setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
+                break;
+            default:
+                setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+                break;
+        }*/
         setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
     }
 }

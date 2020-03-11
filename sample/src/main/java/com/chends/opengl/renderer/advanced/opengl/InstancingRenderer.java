@@ -36,13 +36,14 @@ public class InstancingRenderer extends BaseRenderer {
     private String asteroidsInstancedVertexShaderCode;
     private QuadsRenderer quadsRenderer;
     private AsteroidsRenderer asteroidsRenderer;
-    private AsteroidsInstancedRenderer instancedRenderer;
     private AsteroidsInstancedPlanetRenderer instancedPlanetRenderer;
 
     private int type;
     private final float[] mMVPMatrix = new float[16], projectionMatrix = new float[16],
             viewMatrix = new float[16], modelMatrix = new float[16];
     private float[] eyePos, centerPos;
+    public static final String planetDir = "planet", rockDir = "rock";
+    private List<ObjectBean> planetList, rockList;
 
     public InstancingRenderer(Context context, int type) {
         super(context);
@@ -71,6 +72,10 @@ public class InstancingRenderer extends BaseRenderer {
                 fragmentRes = R.raw.advanced_opengl_instancing_asteroids_fragment;
                 asteroidsInstancedVertexShaderCode = OpenGLUtil.getShaderFromResources(context,
                         R.raw.advanced_opengl_instancing_asteroids_instanced_vertex);
+                planetList = LoadObjectUtil.loadObject(planetDir + "/planet.obj",
+                        context.getResources(), planetDir);
+                rockList = LoadObjectUtil.loadObject(rockDir + "/rock.obj",
+                        context.getResources(), rockDir);
                 break;
             default:
                 return;
@@ -127,16 +132,10 @@ public class InstancingRenderer extends BaseRenderer {
         }
 
         private void drawPlanet() {
-            String planetDir = "planet";
-            List<ObjectBean> planetList = LoadObjectUtil.loadObject(planetDir + "/planet.obj",
-                    context.getResources(), planetDir);
             drawModel(planetList, planetDir);
         }
 
         private void drawRock() {
-            String rockDir = "rock";
-            List<ObjectBean> rockList = LoadObjectUtil.loadObject(rockDir + "/rock.obj",
-                    context.getResources(), rockDir);
             drawModel(rockList, rockDir);
         }
 
@@ -210,12 +209,8 @@ public class InstancingRenderer extends BaseRenderer {
 
         private void drawRock(float[] matrices, int amount) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-                String dir = "rock";
-                List<ObjectBean> list = LoadObjectUtil.loadObject(dir + "/rock.obj",
-                        context.getResources(), dir);
-
-                if (!list.isEmpty()) {
-                    for (ObjectBean item : list) {
+                if (!rockList.isEmpty()) {
+                    for (ObjectBean item : rockList) {
                         if (item != null) {
                             GLES20.glVertexAttribPointer(positionHandle, 3, GLES20.GL_FLOAT,
                                     false, 3 * 4, OpenGLUtil.createFloatBuffer(item.aVertices));
@@ -227,7 +222,7 @@ public class InstancingRenderer extends BaseRenderer {
                                     if (item.diffuse < 0) {
                                         try {
                                             Bitmap bitmap = BitmapFactory.decodeStream(context.getAssets().open(
-                                                    dir + "/" + item.mtl.Kd_Texture));
+                                                    rockDir + "/" + item.mtl.Kd_Texture));
                                             item.diffuse = OpenGLUtil.createTextureNormal(bitmap);
                                             bitmap.recycle();
                                         } catch (IOException e) {
@@ -313,11 +308,8 @@ public class InstancingRenderer extends BaseRenderer {
         }
 
         private void drawPlanet() {
-            String dir = "planet";
-            List<ObjectBean> list = LoadObjectUtil.loadObject(dir + "/planet.obj",
-                    context.getResources(), dir);
-            if (!list.isEmpty()) {
-                for (ObjectBean item : list) {
+            if (!planetList.isEmpty()) {
+                for (ObjectBean item : planetList) {
                     if (item != null) {
                         GLES20.glVertexAttribPointer(positionHandle, 3, GLES20.GL_FLOAT,
                                 false, 3 * 4, OpenGLUtil.createFloatBuffer(item.aVertices));
@@ -329,7 +321,7 @@ public class InstancingRenderer extends BaseRenderer {
                                 if (item.diffuse < 0) {
                                     try {
                                         Bitmap bitmap = BitmapFactory.decodeStream(context.getAssets().open(
-                                                dir + "/" + item.mtl.Kd_Texture));
+                                                planetDir + "/" + item.mtl.Kd_Texture));
                                         item.diffuse = OpenGLUtil.createTextureNormal(bitmap);
                                         bitmap.recycle();
                                     } catch (IOException e) {
@@ -399,7 +391,7 @@ public class InstancingRenderer extends BaseRenderer {
                 //Matrix.perspectiveM(projectionMatrix, 0, 135, ratio, 0.1f, 1000f);
                 Matrix.frustumM(projectionMatrix, 0, -ratio, ratio, -1, 1, 1f, 1000f);
                 Matrix.setLookAtM(viewMatrix, 0, eyePos[0], eyePos[1], eyePos[2],
-                        centerPos[0],  centerPos[1],  centerPos[2],
+                        centerPos[0], centerPos[1], centerPos[2],
                         0f, 1.0f, 0.0f);
                 break;
         }
@@ -489,34 +481,34 @@ public class InstancingRenderer extends BaseRenderer {
         for (int i = 0; i < amount; i++) {
             float[] modelMatrix = new float[16];
             Matrix.setIdentityM(modelMatrix, 0);
-            // 1. translation: displace along circle with 'radius' in range [-offset, offset]
+            // 1. 位移：分布在半径为 'radius' 的圆形上，偏移的范围是 [-offset, offset]
             float angle = (float) i / (float) amount * 360.0f;
             float displacement = (float) (random.nextInt((int) (2 * offset * 100))) / 100.0f - offset;
             float x = (float) Math.sin(Math.toRadians(angle)) * radius + displacement;
             displacement = (float) (random.nextInt((int) (2 * offset * 100))) / 100.0f - offset;
-            float y = displacement * 0.4f; // keep height of asteroid field smaller compared to width of x and z
+            float y = displacement * 0.4f;
             displacement = (float) (random.nextInt((int) (2 * offset * 100))) / 100.0f - offset;
             float z = (float) Math.cos(Math.toRadians(angle)) * radius + displacement;
             Matrix.translateM(modelMatrix, 0, x, y, z);
-            // 2. scale: Scale between 0.05 and 0.25f
+            // 2. 缩放：在 0.05 和 0.25f 之间缩放
             float scale = (float) (random.nextInt(20)) / 100.0f + 0.05f;
             Matrix.scaleM(modelMatrix, 0, scale, scale, scale);
 
-            // 3. rotation: add random rotation around a (semi)randomly picked rotation axis vector
+            // 3. 旋转：绕着一个（半）随机选择的旋转轴向量进行随机的旋转
             float rotAngle = (float) random.nextInt(360);
             Matrix.rotateM(modelMatrix, 0, rotAngle, 0.4f, 0.6f, 0.8f);
 
-            // 4. now add to list of matrices
             modelMatrices[i] = modelMatrix;
         }
         return modelMatrices;
     }
 
+
     /**
      * 绘制小行星带（不使用实例化）
      */
     private void drawAsteroids() {
-        int amount = 200;
+        int amount = 2000; // 如果是10w个加载时间需要十几秒
         float[][] modelMatrices = createMatrices(amount, 50.0f, 2.5f);
 
         asteroidsRenderer.start();
@@ -546,7 +538,7 @@ public class InstancingRenderer extends BaseRenderer {
      * 绘制小行星带_小行星（使用实例化）
      */
     private void drawAsteroidsInstanced() {
-        instancedRenderer = new AsteroidsInstancedRenderer();
+        AsteroidsInstancedRenderer instancedRenderer = new AsteroidsInstancedRenderer();
         int amount = 100_000;
         float[][] modelMatrices = createMatrices(amount, 120f, 25f);
         float[] matrices = new float[amount * 16];
