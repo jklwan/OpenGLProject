@@ -17,6 +17,7 @@ import com.chends.opengl.model.MenuItemBean;
 import com.chends.opengl.utils.DisplayUtil;
 import com.chends.opengl.utils.LogUtil;
 import com.chends.opengl.utils.OpenGLUtil;
+import com.chends.opengl.view.advanced.opengl.AntiAliasingFragment;
 import com.chends.opengl.view.advanced.opengl.BlendingView;
 import com.chends.opengl.view.advanced.opengl.CubeMapsView;
 import com.chends.opengl.view.advanced.opengl.DepthTestingFragment;
@@ -168,6 +169,7 @@ public class MainActivity extends AppCompatActivity {
         //aOpenGL.addItem(new MenuItemBean("环境映射", CubeMapsEnvironmentFragment.class));
         aOpenGL.addItem(new MenuItemBean("几何着色器", GeometryShaderFragment.class));
         aOpenGL.addItem(new MenuItemBean("实例化", InstancingFragment.class));
+        aOpenGL.addItem(new MenuItemBean("抗锯齿", AntiAliasingFragment.class));
         list.add(aOpenGL);
 
         binding.menu1.setLayoutManager(new LinearLayoutManager(this));
