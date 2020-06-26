@@ -10,7 +10,7 @@ import com.chends.opengl.view.BaseChangeFragment;
  */
 public class AntiAliasingFragment extends BaseChangeFragment {
 
-    private final String[] title = new String[]{"立方体", "立方体（开启MSAA）"};
+    private final String[] title = new String[]{"立方体", "立方体（开启MSAA）", "离屏MSAA"};
 
     @Override
     protected View onChangeClick(int type) {

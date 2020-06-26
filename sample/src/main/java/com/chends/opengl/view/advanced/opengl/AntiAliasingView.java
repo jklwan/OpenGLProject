@@ -4,6 +4,7 @@ import android.content.Context;
 import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
 
+import com.chends.opengl.renderer.advanced.opengl.AntiAliasingRenderer;
 import com.chends.opengl.renderer.window.CubeRenderer;
 import com.chends.opengl.utils.OpenGLUtil;
 import com.chends.opengl.view.BaseTypeGLView;
@@ -41,19 +42,20 @@ public class AntiAliasingView extends BaseTypeGLView {
                 setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
                 break;
             case 2:
+                setRenderer(new AntiAliasingRenderer());
                 setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
                 break;
-
         }
     }
 
     private static class MyConfigChooser implements GLSurfaceView.EGLConfigChooser {
         @Override
         public EGLConfig chooseConfig(EGL10 egl, EGLDisplay display) {
-            final int attribs[] = {
+            final int[] attribs = {
                     EGL10.EGL_LEVEL, 0,
                     EGL10.EGL_RENDERABLE_TYPE, 4,  // EGL_OPENGL_ES2_BIT
-                    EGL10.EGL_COLOR_BUFFER_TYPE, EGL10.EGL_RGB_BUFFER,
+                    EGL10.EGL_COLOR_BUFFER_TYPE,
+                    EGL10.EGL_RGB_BUFFER,
                     EGL10.EGL_RED_SIZE, 8,
                     EGL10.EGL_GREEN_SIZE, 8,
                     EGL10.EGL_BLUE_SIZE, 8,
