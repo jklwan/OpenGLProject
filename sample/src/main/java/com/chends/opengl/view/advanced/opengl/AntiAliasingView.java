@@ -3,6 +3,7 @@ package com.chends.opengl.view.advanced.opengl;
 import android.content.Context;
 import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
+import android.widget.Toast;
 
 import com.chends.opengl.renderer.advanced.opengl.AntiAliasingRenderer;
 import com.chends.opengl.renderer.window.CubeRenderer;
@@ -37,12 +38,20 @@ public class AntiAliasingView extends BaseTypeGLView {
                 if (type == 0) {
                     setEGLConfigChooser(true);
                 } else {
+                    if (!OpenGLUtil.checkOpenGL(getContext(), 3)){
+                        Toast.makeText(getContext(), "该设备不支持抗锯齿", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
                     setEGLConfigChooser(new MyConfigChooser());
                 }
                 setRenderer(new CubeRenderer());
                 setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
                 break;
             case 2:
+                if (!OpenGLUtil.checkOpenGL(getContext(), 4)){
+                    Toast.makeText(getContext(), "该设备不支持抗锯齿", Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 setEGLConfigChooser(true);
                 setRenderer(new AntiAliasingRenderer(getContext()));
                 setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
