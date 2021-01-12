@@ -266,7 +266,7 @@ public class FrameBuffersRenderer extends BaseRenderer {
             GLES20.glDisableVertexAttribArray(positionHandle);
             GLES20.glDisableVertexAttribArray(TexCoordsHandle);
 
-            GLES20.glBindTexture(frameBufferTexture, 0);
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
             GLES20.glUseProgram(0);
         }
     }

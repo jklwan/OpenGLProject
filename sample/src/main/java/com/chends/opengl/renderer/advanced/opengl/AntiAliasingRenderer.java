@@ -96,7 +96,7 @@ public class AntiAliasingRenderer extends BaseRenderer {
 
     private final float[] mMVPMatrix = new float[16], projectionMatrix = new float[16],
             viewMatrix = new float[16], modelMatrix = new float[16];
-    private int multiFramebuffer, textureColorBufferMultiSampled, mFramebuffer, mDepthBuffer, mOffscreenTexture;
+    private int multiFramebuffer, /*textureColorBufferMultiSampled, mFramebuffer,*/ mDepthBuffer, mOffscreenTexture;
 
     private TextureRenderer textureRenderer;
     private FrameRenderer frameRenderer;
@@ -188,7 +188,7 @@ public class AntiAliasingRenderer extends BaseRenderer {
             GLES20.glDisableVertexAttribArray(positionHandle);
             GLES20.glDisableVertexAttribArray(texCoordsHandle);
 
-            GLES20.glBindTexture(mOffscreenTexture, 0);
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
             GLES20.glUseProgram(0);
         }
     }
@@ -198,10 +198,10 @@ public class AntiAliasingRenderer extends BaseRenderer {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             int[] result = OpenGLUtil.createMSAAFrameBuffer(disWidth, disHeight);
             multiFramebuffer = result[0];
-            textureColorBufferMultiSampled = result[1];
-            mFramebuffer = result[2];
-            mDepthBuffer = result[3];
-            mOffscreenTexture = result[4];
+            //textureColorBufferMultiSampled = result[1];
+            //mFramebuffer = result[2];
+            mDepthBuffer = result[1];
+            mOffscreenTexture = result[2];
             GLES20.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
             GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
             // 绑定到我们自定义的帧缓冲
@@ -209,20 +209,20 @@ public class AntiAliasingRenderer extends BaseRenderer {
             super.onDrawFrame(gl);
             textureRenderer.start();
             textureRenderer.end();
+            GLES20.glBindFramebuffer(GLES31.GL_DRAW_FRAMEBUFFER, 0);
             GLES20.glBindFramebuffer(GLES31.GL_READ_FRAMEBUFFER, multiFramebuffer);
-            GLES20.glBindFramebuffer(GLES31.GL_DRAW_FRAMEBUFFER, mFramebuffer);
             GLES31.glBlitFramebuffer(0, 0, disWidth, disHeight, 0, 0,
                     disWidth, disHeight,
                     GLES20.GL_COLOR_BUFFER_BIT,
-                    GLES20.GL_NEAREST);
+                    GLES20.GL_LINEAR);
 
             // 重新绑定到系统的帧缓冲
             GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
-            GLES20.glDisable(GLES20.GL_DEPTH_TEST);
+            /*GLES20.glDisable(GLES20.GL_DEPTH_TEST);
             GLES20.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
             GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
             // 绘制我们自定义帧缓冲的内容
-            drawFrameBuffers();
+            drawFrameBuffers();*/
 
             release();
         }
@@ -249,10 +249,10 @@ public class AntiAliasingRenderer extends BaseRenderer {
         int[] values = new int[1];
         if (multiFramebuffer > 0) {
             values[0] = multiFramebuffer;
-            GLES20.glDeleteTextures(1, values, 0);
+            GLES20.glDeleteRenderbuffers(1, values, 0);
             multiFramebuffer = -1;
         }
-        if (textureColorBufferMultiSampled > 0) {
+        /*if (textureColorBufferMultiSampled > 0) {
             values[0] = textureColorBufferMultiSampled;
             GLES20.glDeleteTextures(1, values, 0);
             textureColorBufferMultiSampled = -1;
@@ -261,7 +261,7 @@ public class AntiAliasingRenderer extends BaseRenderer {
             values[0] = mFramebuffer;
             GLES20.glDeleteFramebuffers(1, values, 0);
             mFramebuffer = -1;
-        }
+        }*/
         if (mDepthBuffer > 0) {
             values[0] = mDepthBuffer;
             GLES20.glDeleteRenderbuffers(1, values, 0);
@@ -269,7 +269,7 @@ public class AntiAliasingRenderer extends BaseRenderer {
         }
         if (mOffscreenTexture > 0) {
             values[0] = mOffscreenTexture;
-            GLES20.glDeleteRenderbuffers(1, values, 0);
+            GLES20.glDeleteTextures(1, values, 0);
             mOffscreenTexture = -1;
         }
     }
