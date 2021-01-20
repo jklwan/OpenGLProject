@@ -543,108 +543,46 @@ public class OpenGLUtil {
      */
     public static int[] createMSAAFrameBuffer(int width, int height) {
         int[] values = new int[1];
-        // 深度缓冲
-        GLES20.glGenRenderbuffers(1, values, 0);
-        int mDepthBuffer = values[0];    // expected > 0
-        GLES20.glBindRenderbuffer(GLES20.GL_RENDERBUFFER, mDepthBuffer);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            // 为深度缓冲区分配存储空间。
-            GLES31.glRenderbufferStorageMultisample(GLES20.GL_RENDERBUFFER, 4, GLES30.GL_RGBA8,
-                    width, height);
-        }
-        GLES20.glBindRenderbuffer(GLES20.GL_RENDERBUFFER, 0);
-
-        //创建缓冲区对象，附加纹理和深度
+        int status;
         GLES20.glGenFramebuffers(1, values, 0);
-        int multiFramebuffer = values[0];    // expected > 0
-        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, multiFramebuffer);
-
-        GLES30.glFramebufferRenderbuffer(GLES30.GL_FRAMEBUFFER, GLES30.GL_COLOR_ATTACHMENT0, GLES30.GL_RENDERBUFFER, mDepthBuffer);
-        GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, 0);
+        int framebuffer = values[0];    // expected > 0
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, framebuffer);
 
         // 纹理缓冲
-        GLES20.glGenTextures(1, values, 0);
-        int mOffscreenTexture = values[0];
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mOffscreenTexture);
-
-        // 创建纹理存储。
-        GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, width, height, 0,
-                GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, null);
-
-        // 设置参数。
-        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER,
-                GLES20.GL_LINEAR);
-        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER,
-                GLES20.GL_LINEAR);
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S,
-                GLES20.GL_CLAMP_TO_EDGE);
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T,
-                GLES20.GL_CLAMP_TO_EDGE);
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
-
-        return new int[]{multiFramebuffer, mDepthBuffer, mOffscreenTexture};
-        /*int[] values = new int[1];
-        // 深度缓冲
-        GLES20.glGenRenderbuffers(1, values, 0);
-        int mDepthBuffer = values[0];    // expected > 0
-        GLES20.glBindRenderbuffer(GLES20.GL_RENDERBUFFER, mDepthBuffer);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            // 为深度缓冲区分配存储空间。
-            GLES31.glRenderbufferStorageMultisample(GLES20.GL_RENDERBUFFER, 4, GLES20.GL_DEPTH_COMPONENT16,
-                    width, height);
-        }
-        GLES20.glBindRenderbuffer(GLES20.GL_RENDERBUFFER, 0);
-
-        // 纹理缓冲
-        GLES20.glGenTextures(1, values, 0);
-        int mOffscreenTexture = values[0];
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mOffscreenTexture);
-
-        // 创建纹理存储。
-        GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, width, height, 0,
-                GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, null);
-
-        // 设置参数。
-        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER,
-                GLES20.GL_LINEAR);
-        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER,
-                GLES20.GL_LINEAR);
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S,
-                GLES20.GL_CLAMP_TO_EDGE);
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T,
-                GLES20.GL_CLAMP_TO_EDGE);
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
-
-        //创建缓冲区对象，附加纹理和深度
-        GLES20.glGenFramebuffers(1, values, 0);
-        int multiFramebuffer = values[0];    // expected > 0
-        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, multiFramebuffer);
-
-        // 将深度缓冲区和纹理（颜色缓冲区）附加到帧缓冲区对象。
-        GLES20.glFramebufferRenderbuffer(GLES20.GL_FRAMEBUFFER, GLES20.GL_DEPTH_ATTACHMENT,
-                GLES20.GL_RENDERBUFFER, mDepthBuffer);
-        GLES32.glFramebufferTexture2D();
-
         GLES20.glGenTextures(1, values, 0);
         int textureColorBufferMultiSampled = values[0];   // expected > 0
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             GLES20.glBindTexture(GLES31.GL_TEXTURE_2D_MULTISAMPLE, textureColorBufferMultiSampled);
-
-            // 创建纹理存储。
-            GLES31.glTexStorage2DMultisample(GLES31.GL_TEXTURE_2D_MULTISAMPLE, 4, GLES20.GL_RGBA,
-                    width, height, false);
-
-            GLES20.glBindTexture(GLES31.GL_TEXTURE_2D_MULTISAMPLE, 0);
+            GLES31.glTexStorage2DMultisample(GLES31.GL_TEXTURE_2D_MULTISAMPLE, 4, GLES31.GL_RGBA8,
+                    width, height, true);
+            //GLES20.glBindTexture(GLES31.GL_TEXTURE_2D_MULTISAMPLE, 0);
             GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0,
                     GLES31.GL_TEXTURE_2D_MULTISAMPLE, textureColorBufferMultiSampled, 0);
+            //GLES31.glDrawBuffers(1, new int[]{ GLES31.GL_COLOR_ATTACHMENT0 }, 0);
+        }
+        status = GLES20.glCheckFramebufferStatus(GLES20.GL_FRAMEBUFFER);
+        if (status != GLES20.GL_FRAMEBUFFER_COMPLETE) {
+            // 未创建成功
+            throw new RuntimeException("Framebuffer not complete, status=" + status);
         }
 
+        // rbo
+        GLES20.glGenRenderbuffers(1, values, 0);
+        int rbo = values[0];    // expected > 0
+        GLES20.glBindRenderbuffer(GLES20.GL_RENDERBUFFER, rbo);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            int[] param = new int[1];
+            GLES30.glGetIntegerv(GLES30.GL_MAX_SAMPLES, param, 0);
+            GLES31.glRenderbufferStorageMultisample(GLES20.GL_RENDERBUFFER, param[0], GLES32.GL_DEPTH24_STENCIL8,
+                    width, height);
+        }
+        //GLES20.glBindRenderbuffer(GLES20.GL_RENDERBUFFER, 0);
 
-
-        // 判断是否创建成功
-        int status = GLES20.glCheckFramebufferStatus(GLES20.GL_FRAMEBUFFER);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            GLES20.glFramebufferRenderbuffer(GLES20.GL_FRAMEBUFFER, GLES30.GL_DEPTH_STENCIL_ATTACHMENT,
+                    GLES20.GL_RENDERBUFFER, rbo);
+        }
+        status = GLES20.glCheckFramebufferStatus(GLES20.GL_FRAMEBUFFER);
         if (status != GLES20.GL_FRAMEBUFFER_COMPLETE) {
             // 未创建成功
             throw new RuntimeException("Framebuffer not complete, status=" + status);
@@ -652,26 +590,35 @@ public class OpenGLUtil {
 
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
 
-        // 自定义帧缓冲
+        // fbo
         GLES20.glGenFramebuffers(1, values, 0);
-        int mFramebuffer = values[0];    // expected > 0
-        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFramebuffer);
+        int intermediateFBO = values[0];    // expected > 0
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, intermediateFBO);
 
+        GLES20.glGenTextures(1, values, 0);
+        int screenTexture = values[0];
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, screenTexture);
 
-
+        // 设置参数。
+        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
+        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
+        GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, width, height, 0,
+                GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, null);
         GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0,
-                GLES20.GL_TEXTURE_2D, mOffscreenTexture, 0);
+                GLES20.GL_TEXTURE_2D, screenTexture, 0);
 
         // 判断是否创建成功
         status = GLES20.glCheckFramebufferStatus(GLES20.GL_FRAMEBUFFER);
-        if (status != GLES20.GL_FRAMEBUFFER_COMPLETE) {
+        if (GLES20.glCheckFramebufferStatus(GLES20.GL_FRAMEBUFFER) != GLES20.GL_FRAMEBUFFER_COMPLETE) {
             // 未创建成功
             throw new RuntimeException("Framebuffer not complete, status=" + status);
         }
         // 切换到默认缓冲
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
 
-        return new int[]{multiFramebuffer, textureColorBufferMultiSampled, mFramebuffer, mDepthBuffer, mOffscreenTexture};*/
+        return new int[]{framebuffer, textureColorBufferMultiSampled, intermediateFBO, rbo, screenTexture};
     }
 
     /**

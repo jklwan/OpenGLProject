@@ -80,14 +80,14 @@ public class AntiAliasingRenderer extends BaseRenderer {
                         "varying vec4 ourColor;" +
                         "void main() {" +
                         "  gl_Position = uMVPMatrix * aPosition;" +
-                        "  ourColor = aColor;" + // 将ourColor设置为我们输入的颜色
+                        "  ourColor = aColor;" +
                         "}";
         fragmentShaderCode =
-                "precision mediump float;" + //预定义的全局默认精度
+                "precision mediump float;" +
                         "varying vec4 ourColor;" +
                         "void main() {" +
                         "  gl_FragColor = ourColor;" +
-                        "}"; // 动态改变颜色
+                        "}";
         vertexFrameShader = OpenGLUtil.getShaderFromResources(context, R.raw.advanced_opengl_antialiasing_vertex);
         fragmentFrameShader = OpenGLUtil.getShaderFromResources(context, R.raw.advanced_opengl_antialiasing_fragment);
     }
@@ -96,7 +96,7 @@ public class AntiAliasingRenderer extends BaseRenderer {
 
     private final float[] mMVPMatrix = new float[16], projectionMatrix = new float[16],
             viewMatrix = new float[16], modelMatrix = new float[16];
-    private int multiFramebuffer, /*textureColorBufferMultiSampled, mFramebuffer,*/ mDepthBuffer, mOffscreenTexture;
+    private int framebuffer, textureColorBufferMultiSampled, intermediateFBO, rbo, screenTexture;
 
     private TextureRenderer textureRenderer;
     private FrameRenderer frameRenderer;
@@ -197,32 +197,32 @@ public class AntiAliasingRenderer extends BaseRenderer {
     public void onDrawFrame(GL10 gl) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             int[] result = OpenGLUtil.createMSAAFrameBuffer(disWidth, disHeight);
-            multiFramebuffer = result[0];
-            //textureColorBufferMultiSampled = result[1];
-            //mFramebuffer = result[2];
-            mDepthBuffer = result[1];
-            mOffscreenTexture = result[2];
+            framebuffer = result[0];
+            textureColorBufferMultiSampled = result[1];
+            intermediateFBO = result[2];
+            rbo = result[3];
+            screenTexture = result[4];
             GLES20.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
             GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
             // 绑定到我们自定义的帧缓冲
-            GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, multiFramebuffer);
+            GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, framebuffer);
             super.onDrawFrame(gl);
             textureRenderer.start();
             textureRenderer.end();
-            GLES20.glBindFramebuffer(GLES31.GL_DRAW_FRAMEBUFFER, 0);
-            GLES20.glBindFramebuffer(GLES31.GL_READ_FRAMEBUFFER, multiFramebuffer);
+            GLES20.glBindFramebuffer(GLES31.GL_READ_FRAMEBUFFER, framebuffer);
+            GLES20.glBindFramebuffer(GLES31.GL_DRAW_FRAMEBUFFER, intermediateFBO);
             GLES31.glBlitFramebuffer(0, 0, disWidth, disHeight, 0, 0,
                     disWidth, disHeight,
-                    GLES20.GL_COLOR_BUFFER_BIT,
-                    GLES20.GL_LINEAR);
+                    GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT,
+                    GLES20.GL_NEAREST);
 
             // 重新绑定到系统的帧缓冲
             GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
-            /*GLES20.glDisable(GLES20.GL_DEPTH_TEST);
+            GLES20.glDisable(GLES20.GL_DEPTH_TEST);
             GLES20.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
             GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
             // 绘制我们自定义帧缓冲的内容
-            drawFrameBuffers();*/
+            drawFrameBuffers();
 
             release();
         }
@@ -237,7 +237,7 @@ public class AntiAliasingRenderer extends BaseRenderer {
         GLES20.glVertexAttribPointer(frameRenderer.texCoordsHandle, 2, GLES20.GL_FLOAT,
                 false, 4 * 4, quadVertexBuffer);
 
-        OpenGLUtil.bindTexture(frameRenderer.texturePosHandle, mOffscreenTexture, 0);
+        OpenGLUtil.bindTexture(frameRenderer.texturePosHandle, screenTexture, 0);
 
         // 绘制顶点
         GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 6);
@@ -247,30 +247,30 @@ public class AntiAliasingRenderer extends BaseRenderer {
 
     private void release() {
         int[] values = new int[1];
-        if (multiFramebuffer > 0) {
-            values[0] = multiFramebuffer;
+        if (framebuffer > 0) {
+            values[0] = framebuffer;
             GLES20.glDeleteRenderbuffers(1, values, 0);
-            multiFramebuffer = -1;
+            framebuffer = -1;
         }
-        /*if (textureColorBufferMultiSampled > 0) {
+        if (textureColorBufferMultiSampled > 0) {
             values[0] = textureColorBufferMultiSampled;
             GLES20.glDeleteTextures(1, values, 0);
             textureColorBufferMultiSampled = -1;
         }
-        if (mFramebuffer > 0) {
-            values[0] = mFramebuffer;
+        if (intermediateFBO > 0) {
+            values[0] = intermediateFBO;
             GLES20.glDeleteFramebuffers(1, values, 0);
-            mFramebuffer = -1;
-        }*/
-        if (mDepthBuffer > 0) {
-            values[0] = mDepthBuffer;
-            GLES20.glDeleteRenderbuffers(1, values, 0);
-            mDepthBuffer = -1;
+            intermediateFBO = -1;
         }
-        if (mOffscreenTexture > 0) {
-            values[0] = mOffscreenTexture;
+        if (rbo > 0) {
+            values[0] = rbo;
+            GLES20.glDeleteRenderbuffers(1, values, 0);
+            rbo = -1;
+        }
+        if (screenTexture > 0) {
+            values[0] = screenTexture;
             GLES20.glDeleteTextures(1, values, 0);
-            mOffscreenTexture = -1;
+            screenTexture = -1;
         }
     }
 }
