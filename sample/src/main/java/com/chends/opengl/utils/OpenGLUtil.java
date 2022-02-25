@@ -14,8 +14,6 @@ import android.opengl.GLUtils;
 import android.os.Build;
 import android.text.TextUtils;
 
-import com.chends.opengl.interfaces.BaseListener;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -36,6 +34,7 @@ import javax.microedition.khronos.egl.EGLContext;
 import javax.microedition.khronos.egl.EGLDisplay;
 
 import androidx.annotation.RawRes;
+import androidx.core.util.Consumer;
 
 /**
  * @author chends create on 2019/12/6.
@@ -56,12 +55,16 @@ public class OpenGLUtil {
         if (am != null) {
             int ver = am.getDeviceConfigurationInfo().reqGlEsVersion;
             if (ver >= 0x30002) {
+                //  OpenGL ES 3.2
                 OpenGLVersion = 5;
             } else if (ver >= 0x30001) {
+                //  OpenGL ES 3.1
                 OpenGLVersion = 4;
             } else if (ver >= 0x30000) {
+                //  OpenGL ES 3.0
                 OpenGLVersion = 3;
             } else if (ver >= 0x20000) {
+                // OpenGL ES 2.0
                 OpenGLVersion = 2;
             } else {
                 OpenGLVersion = 0;
@@ -73,16 +76,16 @@ public class OpenGLUtil {
         return createFactory(null);
     }
 
-    public static GLSurfaceView.EGLContextFactory createFactory(BaseListener<Integer> listener) {
+    public static GLSurfaceView.EGLContextFactory createFactory(Consumer<Integer> listener) {
         return new ContextFactory(listener);
     }
 
     private static class ContextFactory implements GLSurfaceView.EGLContextFactory {
 
         private static final int EGL_CONTEXT_CLIENT_VERSION = 0x3098;
-        private BaseListener<Integer> listener;
+        private Consumer<Integer> listener;
 
-        public ContextFactory(BaseListener<Integer> listener) {
+        public ContextFactory(Consumer<Integer> listener) {
             this.listener = listener;
         }
 
@@ -121,7 +124,7 @@ public class OpenGLUtil {
                 }
             }
             if (listener != null) {
-                listener.onFinish(version);
+                listener.accept(version);
             }
             return context;
         }
