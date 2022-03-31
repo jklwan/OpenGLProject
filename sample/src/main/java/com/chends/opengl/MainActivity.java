@@ -12,6 +12,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.chends.opengl.databinding.ActivityMainBinding;
+import com.chends.opengl.databinding.LayoutMenuBinding;
 import com.chends.opengl.model.MenuBean;
 import com.chends.opengl.model.MenuItemBean;
 import com.chends.opengl.utils.DisplayUtil;
@@ -72,6 +73,7 @@ public class MainActivity extends AppCompatActivity {
     private GLSurfaceView currentView;
 
     ActivityMainBinding binding;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -272,7 +274,7 @@ public class MainActivity extends AppCompatActivity {
         @NonNull
         @Override
         public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            return new ItemHolder(LayoutInflater.from(MainActivity.this).inflate(R.layout.layout_menu, parent, false));
+            return new ItemHolder(LayoutMenuBinding.inflate(LayoutInflater.from(MainActivity.this), parent, false));
         }
 
         public MenuBean getItem(int position) {
@@ -293,8 +295,8 @@ public class MainActivity extends AppCompatActivity {
 
             private TextView textView;
 
-            public ItemHolder(@NonNull View itemView) {
-                super(itemView);
+            public ItemHolder(@NonNull LayoutMenuBinding binding) {
+                super(binding.getRoot());
                 textView = (TextView) itemView;
             }
 
@@ -362,7 +364,7 @@ public class MainActivity extends AppCompatActivity {
         @NonNull
         @Override
         public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            return new ItemHolder(LayoutInflater.from(MainActivity.this).inflate(R.layout.layout_menu, parent, false));
+            return new ItemHolder(LayoutMenuBinding.inflate(LayoutInflater.from(MainActivity.this), parent, false));
         }
 
         public MenuItemBean getItem(int position) {
@@ -384,8 +386,8 @@ public class MainActivity extends AppCompatActivity {
 
             private TextView textView;
 
-            public ItemHolder(@NonNull View itemView) {
-                super(itemView);
+            public ItemHolder(@NonNull LayoutMenuBinding binding) {
+                super(binding.getRoot());
                 textView = (TextView) itemView;
             }
 

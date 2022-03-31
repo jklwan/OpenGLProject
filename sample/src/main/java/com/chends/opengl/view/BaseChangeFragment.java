@@ -4,9 +4,8 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 
-import com.chends.opengl.R;
+import com.chends.opengl.databinding.FragmentChangeBinding;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -17,9 +16,8 @@ import androidx.fragment.app.Fragment;
  */
 public abstract class BaseChangeFragment extends Fragment {
 
-    private ViewGroup containerLayout;
+    private FragmentChangeBinding binding;
     private int type = 0;
-    private Button btn;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -29,12 +27,10 @@ public abstract class BaseChangeFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_change, container, false);
-        btn = view.findViewById(R.id.change);
-        btn.setOnClickListener(new ChangeClick());
-        containerLayout = view.findViewById(R.id.container);
-        btn.performClick();
-        return view;
+        binding = FragmentChangeBinding.inflate(inflater, container, false);
+        binding.change.setOnClickListener(new ChangeClick());
+        binding.change.performClick();
+        return binding.getRoot();
     }
 
     private class ChangeClick implements View.OnClickListener {
@@ -43,10 +39,10 @@ public abstract class BaseChangeFragment extends Fragment {
             if (type >= getTypeMax()) {
                 type = 0;
             }
-            containerLayout.removeAllViews();
-            containerLayout.addView(onChangeClick(type), new ViewGroup.LayoutParams(
+            binding.container.removeAllViews();
+            binding.container.addView(onChangeClick(type), new ViewGroup.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-            btn.setText(getTypeText(type));
+            binding.change.setText(getTypeText(type));
             type++;
         }
     }
