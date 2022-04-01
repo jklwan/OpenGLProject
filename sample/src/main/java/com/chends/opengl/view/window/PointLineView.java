@@ -4,7 +4,9 @@ import android.content.Context;
 import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
 
+import com.chends.opengl.Constant;
 import com.chends.opengl.renderer.window.PointLineRenderer;
+import com.chends.opengl.utils.JniRendererUtil;
 import com.chends.opengl.utils.OpenGLUtil;
 import com.chends.opengl.view.BaseGLView;
 
@@ -23,7 +25,11 @@ public class PointLineView extends BaseGLView {
     @Override
     protected void init() {
         setEGLContextFactory(OpenGLUtil.createFactory());
-        setRenderer(new PointLineRenderer());
+        if (Constant.UserJni) {
+            setRenderer(JniRendererUtil.create(Constant.PointLine));
+        } else {
+            setRenderer(new PointLineRenderer());
+        }
         setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
     }
 }
