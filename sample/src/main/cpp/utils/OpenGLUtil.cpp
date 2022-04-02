@@ -2,6 +2,25 @@
 #include <sstream>
 #include "OpenGLUtil.h"
 
+
+void OpenGLUtil::surfaceCreated() {
+    glClearColor(defaultBg[0], defaultBg[1],
+                 defaultBg[2], defaultBg[3]);
+}
+
+void OpenGLUtil::drawFrame(jint width, jint height) {
+    // 设置显示范围
+    glViewport(0, 0, width, height);
+    //GLES20.glEnable(GLES20.GL_CULL_FACE);
+    glEnable(GL_DEPTH_TEST);
+    // 清屏
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+GLuint OpenGLUtil::createProgram(JNIEnv *env) {
+    return createProgram(env, defaultVertexShaderCode, defaultFragmentShaderCode, nullptr, nullptr);
+}
+
 GLuint OpenGLUtil::createProgram(JNIEnv *env, const char *vertexSource, const char *fragmentSource) {
     return createProgram(env, vertexSource, fragmentSource, nullptr, nullptr);
 }
@@ -18,28 +37,6 @@ GLuint OpenGLUtil::createProgram(JNIEnv *env, const char *vertexSource, const ch
 
 GLuint OpenGLUtil::createProgram(JNIEnv *env, const char *vertexSource, const char *fragmentSource,
                                  const char *geometrySource, jobjectArray attributes) {
-
-    /*GLuint program = glCreateProgram();
-    if (0 == program) {
-        LOGI("create program error");
-        return 0;
-    }
-    LOGI("create program success");
-    int vertexShaderID = compileShader(GL_VERTEX_SHADER, vertexShaderCode);
-    int fragmentShaderID = compileShader(GL_FRAGMENT_SHADER, fragmentShaderCode);
-
-    glAttachShader(program, vertexShaderID);
-    glAttachShader(program, fragmentShaderID);
-    glLinkProgram(program);
-    GLint linkStatus;
-    glGetProgramiv(program, GL_LINK_STATUS, &linkStatus);
-    if (0 == linkStatus) {
-        glDeleteProgram(program);
-        LOGI("link program error");
-        return 0;
-    }
-    return program;*/
-
     GLuint vertexShader = loadShader(GL_VERTEX_SHADER, vertexSource);
     if (vertexShader == 0) {
         return 0;

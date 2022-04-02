@@ -1,20 +1,20 @@
-#include "BaseRenderer.cpp"
+#include <GLES3/gl3.h>
+#include <cstring>
+#include <jni.h>
+#include "utils/OpenGLUtil.h"
 
-class PointLine : public BaseRenderer {
+class PointLine {
     const GLfloat *TriangleCoords = new GLfloat[]{
             -0.9f, 0.9f, 0.0f,
             -0.9f, 0.8f, 0.0f,
-
             -0.8f, -0.1f, 0.0f,
             -0.6f, -0.5f, 0.0f,
             -0.5f, -0.8f, 0.0f,
             -0.4f, 0.4f, 0.0f,
-
             -0.2f, 0.1f, 0.0f,
             -0.0f, 0.5f, 0.0f,
             0.1f, 0.0f, 0.0f,
             0.3f, -0.5f, 0.0f,
-
             0.4f, -0.2f, 0.0f,
             0.6f, -0.5f, 0.0f,
             0.9f, -0.6f, 0.0f,
@@ -22,9 +22,17 @@ class PointLine : public BaseRenderer {
     };
 
 public:
-    void drawFrame(JNIEnv *env) override {
-        BaseRenderer::drawFrame(env);
-        GLuint shaderProgram = OpenGLUtil::createProgram(env, vertexShaderCode, fragmentShaderCode);
+    void surfaceCreated(JNIEnv *env)  {
+        OpenGLUtil::surfaceCreated();
+    }
+
+    void surfaceChanged(JNIEnv *env, jint width, jint height)  {
+        LOGE("PointLine surfaceChanged");
+    }
+
+    void drawFrame(JNIEnv *env, jint width, jint height)  {
+        OpenGLUtil::drawFrame(width, height);
+        GLuint shaderProgram = OpenGLUtil::createProgram(env);
         glUseProgram(shaderProgram);
         GLint positionHandle = glGetAttribLocation(shaderProgram, "aPosition");
         glEnableVertexAttribArray(positionHandle);
@@ -35,7 +43,7 @@ public:
                               GL_FALSE, 3 * 4, TriangleCoords);
         GLint colorHandle = glGetUniformLocation(shaderProgram, "vColor");
         // 设置颜色
-        glUniform4fv(colorHandle, 1, color);
+        glUniform4fv(colorHandle, 1, defaultColor);
         // 画点
         glDrawArrays(GL_POINTS, 0, 13);
         // 设置线宽

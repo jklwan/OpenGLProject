@@ -19,20 +19,21 @@ public class JniRendererUtil {
         this.type = type;
     }
 
-    public static GLSurfaceView.Renderer create(int type){
+    public static GLSurfaceView.Renderer create(int type) {
         return new InnerRenderer(new JniRendererUtil(type));
     }
 
-    public native void surfaceChanged(int width, int height);
-
     public native void surfaceCreated(int type);
+
+    public native void surfaceChanged(int width, int height);
 
     public native void drawFrame();
 
-    private static class InnerRenderer implements GLSurfaceView.Renderer{
+    private static class InnerRenderer implements GLSurfaceView.Renderer {
 
         private final JniRendererUtil util;
-        public InnerRenderer(JniRendererUtil util){
+
+        public InnerRenderer(JniRendererUtil util) {
             this.util = util;
         }
 
@@ -43,7 +44,7 @@ public class JniRendererUtil {
 
         @Override
         public void onSurfaceChanged(GL10 gl, int width, int height) {
-            util.surfaceChanged(width,height);
+            util.surfaceChanged(width, height);
         }
 
         @Override
